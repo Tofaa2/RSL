@@ -4,6 +4,7 @@ public enum AstNodeType {
 
     PROGRAM,
     NUM_LITERAL,
+    NULL_LITERAL,
     IDENTIFIER,
     BINARY_EXPR,
     UNARY_EXPR,

@@ -74,10 +74,13 @@ public class RSLParser {
             case IDENTIFIER -> {
                 return new IdentifierExpression(advance().value());
             }
+            case NULL -> {
+                advance();
+                return NullLiteralExpression.INSTANCE;
+            }
             case NUMBER -> {
                 return new NumericLiteralExpression(Utils.numFromString(advance().value()));
             }
-
             case L_PAREN -> {
                 advance();
                 var value = this.parseExpr();

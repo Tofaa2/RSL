@@ -31,7 +31,8 @@ public class Lexer {
 
     private static final Map<String, TokenType> RESERVED_TYPES = Map.of(
             "var", TokenType.VARIABLE,
-            "const", TokenType.CONSTANT
+            "const", TokenType.CONSTANT,
+            "null", TokenType.NULL
     );
 
 

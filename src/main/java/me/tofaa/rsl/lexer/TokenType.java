@@ -2,6 +2,8 @@ package me.tofaa.rsl.lexer;
 
 public enum TokenType {
 
+    NULL,
+
     NUMBER,
     IDENTIFIER,
     EQUALS,
