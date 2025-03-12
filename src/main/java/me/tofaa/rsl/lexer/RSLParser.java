@@ -57,7 +57,19 @@ public class RSLParser {
     }
 
     private Expression parseExpr() {
-        return parseAdditiveExpr();
+        return parseAssignmentExpr();
+        //return parseAdditiveExpr();
+    }
+
+    private Expression parseAssignmentExpr() {
+        var left = parseMultiplicativeExpr(); // TODO: Objects.
+        if (currentToken().type() == TokenType.EQUALS) {
+            advance();
+            var value = parseAssignmentExpr(); // TODO: Objets.
+            //advanceExpect(TokenType.SEMICOLON, "Expected semi colon after assignment of expression %s.".formatted(left.type()));
+            return new AssignmentExpression(left, value);
+        }
+        return left;
     }
 
     // Left precedence based additive expression parsing
@@ -100,6 +112,9 @@ public class RSLParser {
             }
             case NUMBER -> {
                 return new NumericLiteralExpression(Utils.numFromString(advance().value()));
+            }
+            case BOOL -> {
+                return new BooleanLiteral(Boolean.parseBoolean(advance().value()));
             }
             case L_PAREN -> {
                 advance();

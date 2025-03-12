@@ -9,12 +9,13 @@ public enum AstNodeType {
 
     // EXPR,
     NUM_LITERAL,
+    BOOL_LITERAL,
     NULL_LITERAL,
     IDENTIFIER,
     BINARY_EXPR,
     UNARY_EXPR,
     CALL_EXPR,
-
+    ASSIGNMENT_EXPR,
 
 
 }

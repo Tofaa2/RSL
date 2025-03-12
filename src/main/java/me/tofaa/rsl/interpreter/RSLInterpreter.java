@@ -15,8 +15,14 @@ public final class RSLInterpreter {
     public static RuntimeValue eval(Statement astNode, Environment env) {
 
         switch (astNode.type()) {
+            case ASSIGNMENT_EXPR -> {
+                return evalAssignment((AssignmentExpression) astNode, env);
+            }
             case NUM_LITERAL -> {
                 return new NumberValue(((NumericLiteralExpression)astNode).value());
+            }
+            case BOOL_LITERAL -> {
+                return evalBooleanExpression((BooleanLiteral)astNode, env);
             }
             case IDENTIFIER -> {
                 return evalIdentifier((IdentifierExpression) astNode, env);

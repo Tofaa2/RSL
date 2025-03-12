@@ -13,9 +13,7 @@ public enum TokenType {
     R_PAREN,
     SEMICOLON,
 
-    BOOL_TRUE,
-    BOOL_FALSE,
-
+    BOOL,
     EOF,
 
     ;
