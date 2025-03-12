@@ -35,6 +35,8 @@ public class Lexer {
             "const", TokenType.CONSTANT,
             "false", TokenType.BOOL,
             "true", TokenType.BOOL,
+            "fn", TokenType.FN,
+            "return", TokenType.RETURN,
             "null", TokenType.NULL
     );
 

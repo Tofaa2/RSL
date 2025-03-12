@@ -1,0 +1,13 @@
+fn fancyAdd(a, b) {
+    fn insideA(a, b) {
+        a + b
+    }
+    insideA(a, b)
+}
+
+fn add(a, b) {
+    println(a + b)
+    a + b
+}
+
+add(5, 3)

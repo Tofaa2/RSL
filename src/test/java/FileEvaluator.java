@@ -23,7 +23,6 @@ public class FileEvaluator {
             Environment env = new Environment(null);
             GlobalNativeFunctions.register(env);
             var result = RSLInterpreter.eval(program, env);
-            System.out.printf("FILE: %s output: %s%n", file.getName(), result.toString());
         }
     }
 

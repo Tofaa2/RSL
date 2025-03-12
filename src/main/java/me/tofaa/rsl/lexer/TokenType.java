@@ -12,7 +12,8 @@ public enum TokenType {
     L_PAREN,
     R_PAREN,
     SEMICOLON,
-
+    FN,
+    RETURN,
     L_BRACKET,
     R_BRACKET,
 

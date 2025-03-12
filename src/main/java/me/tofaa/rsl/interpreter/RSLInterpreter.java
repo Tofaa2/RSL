@@ -3,6 +3,7 @@ package me.tofaa.rsl.interpreter;
 import me.tofaa.rsl.ast.*;
 import me.tofaa.rsl.environment.Environment;
 import me.tofaa.rsl.exception.RSLInterpretException;
+import me.tofaa.rsl.interpreter.runtime.FunctionValue;
 import me.tofaa.rsl.interpreter.runtime.NullValue;
 import me.tofaa.rsl.interpreter.runtime.NumberValue;
 import me.tofaa.rsl.interpreter.runtime.RuntimeValue;
@@ -42,7 +43,9 @@ public final class RSLInterpreter {
             case VAR_DECL -> {
                 return evalVarDecl((VarDeclStatement)astNode, env);
             }
-
+            case FUNC_DECL -> {
+                return evalFuncDecl((FuncDeclStatement)astNode, env);
+            }
             case NULL_LITERAL -> {
                 return NullValue.INSTANCE;
             }

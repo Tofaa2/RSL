@@ -20,12 +20,36 @@ public final class EvalExpressions {
             args.add(eval(a, env));
         }
         var fn = eval(obj.caller(), env);
-        if (fn.type() != RSLInterpreterValueTypes.NATIVE_FUNCTION) { // TODO: User functions
+        if (fn.type() == RSLInterpreterValueTypes.NATIVE_FUNCTION) {
+            var func = (NativeFunctionValue)fn;
+            var callable = func.call();
+            return callable.call(env, args);
+        }
+        else if (fn.type() == RSLInterpreterValueTypes.FUNCTION) {
+            var function = ((FunctionValue)fn);
+            var scope = new Environment(function.parentScope());
+            for (int i = 0; i < function.params().size(); i++) {
+                var name = function.params().get(i);
+                if (i >= args.size()) {
+                    throw new RSLInterpretException(
+                            "Passed invalid amount of arguments into a function. Expected %s received %s".formatted(
+                                    String.valueOf(function.params().size()),
+                                    String.valueOf(args.size())
+                            )
+                    );
+                }
+                var argument = args.get(i);
+                scope.declare(name, argument, false); // Mutable fun!
+            }
+            RuntimeValue result = NullValue.INSTANCE;
+            for (var stmt : function.body()) {
+                result = eval(stmt, scope);
+            }
+            return result;
+        }
+        else {
             throw new RSLInterpretException("Attempted to call a non function value. Called: %s".formatted(fn));
         }
-        var func = (NativeFunctionValue)fn;
-        var callable = func.call();
-        return callable.call(env, args);
     }
 
     static RuntimeValue evalObject(ObjectLiteralExpression obj, Environment env) {

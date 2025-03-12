@@ -33,10 +33,39 @@ public class RSLParser {
             case TokenType.VARIABLE, TokenType.CONSTANT -> {
                 return parseVarDecl();
             }
+            case FN -> {
+                return parseFnDecl();
+            }
             default -> {
                 return parseExpr();
             }
         }
+    }
+
+    private FuncDeclStatement parseFnDecl() {
+        advance();
+        var name = advanceExpect(TokenType.IDENTIFIER, "Expected function identifier.");
+        var args = parseArgs();
+        var params = new ArrayList<String>(args.size());
+        for (var arg : args) {
+            if (arg.type() == AstNodeType.IDENTIFIER) {
+                params.add(((IdentifierExpression)arg).value());
+            }
+            else {
+                throw new RSLTokenizeException("Expected a function parameter identifier. Got %s".formatted(arg.type()));
+            }
+        }
+        advanceExpect(TokenType.L_BRACE, "Expected function body open parenthesis for function declaration");
+        var body = new ArrayList<Statement>();
+        while (notEof() && currentToken().type() != TokenType.R_BRACE) {
+            body.add(parseStatement());
+        }
+        advanceExpect(TokenType.R_BRACE, "Expected function body close parenthesis for function declaration");
+
+        var function = new FuncDeclStatement(
+                params, name.value(), body
+        );
+        return function;
     }
 
     // if var and non asigned, do null
