@@ -8,6 +8,20 @@ public final class GlobalNativeFunctions {
 
     private GlobalNativeFunctions() {}
 
+    public static NativeFunctionValue TO_STR = new NativeFunctionValue(((environment, arguments) -> {
+        if (arguments.size() != 1) {
+            return NullValue.INSTANCE;
+        }
+        return new StringValue(arguments.getFirst().toString());
+    }));
+
+    public static NativeFunctionValue TYPE_OF = new NativeFunctionValue((env, args) -> {
+        if (args.size() != 1) {
+            return NullValue.INSTANCE;
+        }
+        return new StringValue(args.getFirst().getClass().getSimpleName());
+    });
+
     public static NativeFunctionValue PRINT_LN = new NativeFunctionValue((environment, arguments) ->{
         for (var arg : arguments) {
             switch (arg) {
@@ -37,6 +51,8 @@ public final class GlobalNativeFunctions {
     ) {
         env.declare("println", PRINT_LN, true);
         env.declare("currentTimeMs", CURRENT_TIME_MS, true);
+        env.declare("typeof", TYPE_OF, true);
+        env.declare("toString", TO_STR, true);
     }
 
 }

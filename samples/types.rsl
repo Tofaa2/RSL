@@ -1,0 +1,2 @@
+println(typeof(println))
+println(toString(println))S

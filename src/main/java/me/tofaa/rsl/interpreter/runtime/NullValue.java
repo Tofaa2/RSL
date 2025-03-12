@@ -10,4 +10,10 @@ public record NullValue(String value) implements RuntimeValue {
     public RSLInterpreterValueTypes type() {
         return RSLInterpreterValueTypes.NULL;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return true;
+        return o instanceof NullValue;
+    }
 }

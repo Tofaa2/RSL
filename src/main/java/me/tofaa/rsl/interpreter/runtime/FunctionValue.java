@@ -16,4 +16,6 @@ public record FunctionValue(
     public RSLInterpreterValueTypes type() {
         return RSLInterpreterValueTypes.FUNCTION;
     }
+
+
 }

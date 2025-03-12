@@ -7,4 +7,15 @@ public record StringValue(String value) implements RuntimeValue {
     public RSLInterpreterValueTypes type() {
         return RSLInterpreterValueTypes.STRING;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof String s) { // Might be a bad idea at some point but dont care.
+            return s.equals(value);
+        }
+        if (o instanceof StringValue(String v)) {
+            return v.equals(value);
+        }
+        return false;
+    }
 }
