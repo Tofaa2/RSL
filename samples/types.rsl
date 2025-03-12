@@ -1,2 +1,2 @@
 println(typeof(println))
-println(toString(println))S
+println(toString(println))

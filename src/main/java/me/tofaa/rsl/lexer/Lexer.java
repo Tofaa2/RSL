@@ -89,7 +89,21 @@ public class Lexer {
                 case ";" -> tokens.add(new Token(src.removeFirst(), TokenType.SEMICOLON));
                 case "(" -> tokens.add(new Token(src.removeFirst(), TokenType.L_PAREN));
                 case ")" -> tokens.add(new Token(src.removeFirst(), TokenType.R_PAREN));
-                case "+", "-", "*", "/", "%" -> tokens.add(new Token(src.removeFirst(), TokenType.ARITHMENTIC));
+                case "+", "*", "/", "%" -> tokens.add(new Token(src.removeFirst(), TokenType.ARITHMENTIC));
+                case "-" -> {
+                    src.removeFirst();
+                    if (isNumeric(src.getFirst())) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("-");
+                        while (!src.isEmpty() && isNumeric(src.getFirst())) {
+                            sb.append(src.removeFirst());
+                        }
+                        tokens.add(new Token(sb.toString(), TokenType.NUMBER));
+                    }
+                    else {
+                        tokens.add(new Token("-", TokenType.ARITHMENTIC));
+                    }
+                }
                 case "=" -> tokens.add(new Token(src.removeFirst(), TokenType.EQUALS));
                 default -> {
                     if (isNumeric(first)) {

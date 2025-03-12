@@ -105,6 +105,9 @@ public final class EvalExpressions {
                 return new StringValue(s1.value() + value);
             }
             else {
+                if (s2 instanceof NumberValue(Number value)) {
+                    return new StringValue(s1.value() + value);
+                }
                 throw new RSLInterpretException("Invalid string operation. Strings only support multiply (str * 4) or addition (str + other str).");
             }
         }

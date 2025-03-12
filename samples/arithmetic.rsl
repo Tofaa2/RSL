@@ -6,8 +6,9 @@ fn fancyAdd(a, b) {
 }
 
 fn add(a, b) {
-    println(a + b)
     a + b
 }
 
-add(5, 3)
+println("Addition result: " + add(5, -3))
+
+println("Funky: " + (5 - -5))
