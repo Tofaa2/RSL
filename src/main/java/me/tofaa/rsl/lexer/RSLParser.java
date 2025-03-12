@@ -42,6 +42,15 @@ public class RSLParser {
         }
     }
 
+//    private StringLiteralExpression parseString() {
+//        StringBuilder sb = new StringBuilder();
+//        advanceExpect(TokenType.DOUBLE_QUOTE, "Expected double quote for string start.");
+//        while (notEof() && currentToken().type() != TokenType.DOUBLE_QUOTE) {
+//            sb.append(advance().value());
+//        }
+//        return new StringLiteralExpression(sb.toString());
+//    }
+
     private FuncDeclStatement parseFnDecl() {
         advance();
         var name = advanceExpect(TokenType.IDENTIFIER, "Expected function identifier.");
@@ -62,10 +71,9 @@ public class RSLParser {
         }
         advanceExpect(TokenType.R_BRACE, "Expected function body close parenthesis for function declaration");
 
-        var function = new FuncDeclStatement(
+        return new FuncDeclStatement(
                 params, name.value(), body
         );
-        return function;
     }
 
     // if var and non asigned, do null
@@ -87,7 +95,6 @@ public class RSLParser {
 
     private Expression parseExpr() {
         return parseAssignmentExpr();
-
     }
 
     private Expression parseObjectExpr() {
@@ -232,6 +239,20 @@ public class RSLParser {
             case IDENTIFIER -> {
                 return new IdentifierExpression(advance().value());
             }
+            case STRING ->  {
+                return new StringLiteralExpression(advance().value());
+            }
+//            case DOUBLE_QUOTE -> {
+//                advance();
+//                StringBuilder sb = new StringBuilder();
+//                while (notEof() && currentToken().type() != TokenType.DOUBLE_QUOTE) {
+//                    sb.append()
+//                }
+//                var value = new StringLiteralExpression(advance().value());
+//                System.out.println(value.value());
+//                advanceExpect(TokenType.DOUBLE_QUOTE, "Unexpected end of string literal.");
+//                return value;
+//            }
             case NULL -> {
                 advance();
                 return NullLiteralExpression.INSTANCE;

@@ -64,6 +64,21 @@ public class Lexer {
                         src.removeFirst();
                     }
                 }
+                case  "\"" -> {
+                    StringBuilder sb = new StringBuilder();
+                    src.removeFirst();
+                    boolean complete = false;
+                    while (!complete) {
+                        if (src.getFirst().equals("\"")) {
+                            complete = true;
+                            src.removeFirst();
+                        }
+                        else {
+                            sb.append(src.removeFirst());
+                        }
+                    }
+                    tokens.add(new Token(sb.toString(), TokenType.STRING));
+                }
                 case "." -> tokens.add(new Token(src.removeFirst(), TokenType.DOT));
                 case "[" -> tokens.add(new Token(src.removeFirst(), TokenType.L_BRACKET));
                 case "]" -> tokens.add(new Token(src.removeFirst(), TokenType.R_BRACKET));

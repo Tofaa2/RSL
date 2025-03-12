@@ -3,10 +3,7 @@ package me.tofaa.rsl.interpreter;
 import me.tofaa.rsl.ast.*;
 import me.tofaa.rsl.environment.Environment;
 import me.tofaa.rsl.exception.RSLInterpretException;
-import me.tofaa.rsl.interpreter.runtime.FunctionValue;
-import me.tofaa.rsl.interpreter.runtime.NullValue;
-import me.tofaa.rsl.interpreter.runtime.NumberValue;
-import me.tofaa.rsl.interpreter.runtime.RuntimeValue;
+import me.tofaa.rsl.interpreter.runtime.*;
 
 import static me.tofaa.rsl.interpreter.EvalStatements.*;
 import static me.tofaa.rsl.interpreter.EvalExpressions.*;
@@ -48,6 +45,9 @@ public final class RSLInterpreter {
             }
             case NULL_LITERAL -> {
                 return NullValue.INSTANCE;
+            }
+            case STRING_LITERAL -> {
+                return new StringValue(((StringLiteralExpression)astNode).value());
             }
 
             default -> {

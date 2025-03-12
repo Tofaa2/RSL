@@ -1,2 +1,5 @@
 var x = 100;
 println(currentTimeMs(), x)
+
+x = x - 100
+println("Hello World", x)

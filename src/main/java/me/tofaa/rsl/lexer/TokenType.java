@@ -17,6 +17,9 @@ public enum TokenType {
     L_BRACKET,
     R_BRACKET,
 
+    DOUBLE_QUOTE,
+    STRING,
+
     DOT,
     COLON,
     COMMA,

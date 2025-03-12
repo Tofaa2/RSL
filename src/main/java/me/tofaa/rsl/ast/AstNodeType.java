@@ -8,6 +8,7 @@ public enum AstNodeType {
     FUNC_DECL,
 
     // Literal
+    STRING_LITERAL,
     BOOL_LITERAL,
     NULL_LITERAL,
     IDENTIFIER,

@@ -7,6 +7,7 @@ public enum RSLInterpreterValueTypes {
     BOOL,
     OBJECT,
     NATIVE_FUNCTION,
+    STRING,
     FUNCTION
 
 }
