@@ -1,7 +1,6 @@
 import me.tofaa.rsl.lexer.Lexer;
-import me.tofaa.rsl.parser.RSLParser;
+import me.tofaa.rsl.lexer.RSLParser;
 
-import java.io.File;
 import java.util.Scanner;
 
 public class AstTest {

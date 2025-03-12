@@ -1,12 +1,9 @@
-package me.tofaa.rsl.parser;
+package me.tofaa.rsl.lexer;
 
 import me.tofaa.rsl.Utils;
 import me.tofaa.rsl.ast.*;
 import me.tofaa.rsl.exception.RSLSyntaxTreeException;
 import me.tofaa.rsl.exception.RSLTokenizeException;
-import me.tofaa.rsl.lexer.Lexer;
-import me.tofaa.rsl.lexer.Token;
-import me.tofaa.rsl.lexer.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
