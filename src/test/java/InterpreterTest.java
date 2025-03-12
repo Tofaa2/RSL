@@ -24,7 +24,7 @@ public class InterpreterTest {
             var program = parser.create();
 
             long n = System.nanoTime();
-            var result = new RSLInterpreter().eval(program, env);
+            var result = RSLInterpreter.eval(program, env);
             long end = System.nanoTime();
             System.out.println(result);
             System.out.println("Execution finished in " + (end - n) + " ns");

@@ -3,7 +3,6 @@ package me.tofaa.rsl.lexer;
 public enum TokenType {
 
     NULL,
-
     NUMBER,
     IDENTIFIER,
     EQUALS,
@@ -12,6 +11,10 @@ public enum TokenType {
     CONSTANT,
     L_PAREN,
     R_PAREN,
+    SEMICOLON,
+
+    BOOL_TRUE,
+    BOOL_FALSE,
 
     EOF,
 

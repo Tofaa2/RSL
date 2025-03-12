@@ -32,6 +32,8 @@ public class Lexer {
     private static final Map<String, TokenType> RESERVED_TYPES = Map.of(
             "var", TokenType.VARIABLE,
             "const", TokenType.CONSTANT,
+            "false", TokenType.BOOL_FALSE,
+            "true", TokenType.BOOL_TRUE,
             "null", TokenType.NULL
     );
 
@@ -58,7 +60,7 @@ public class Lexer {
                     }
                     System.out.printf("Found comment: %s%n", sb.toString());
                 }
-
+                case ";" -> tokens.add(new Token(src.removeFirst(), TokenType.SEMICOLON));
                 case "(" -> tokens.add(new Token(src.removeFirst(), TokenType.L_PAREN));
                 case ")" -> tokens.add(new Token(src.removeFirst(), TokenType.R_PAREN));
                 case "+", "-", "*", "/", "%" -> tokens.add(new Token(src.removeFirst(), TokenType.ARITHMENTIC));

@@ -29,8 +29,31 @@ public class RSLParser {
     }
 
     private Statement parseStatement() {
-        // TODO:
-        return parseExpr();
+        switch (currentToken().type()) {
+            case TokenType.VARIABLE, TokenType.CONSTANT -> {
+                return parseVarDecl();
+            }
+            default -> {
+                return parseExpr();
+            }
+        }
+    }
+
+    // if var and non asigned, do null
+    private VarDeclStatement parseVarDecl() {
+        boolean isConstant = advance().type() == TokenType.CONSTANT;
+        var identifier = advanceExpect(TokenType.IDENTIFIER, "Expected identifier name following a declaration statement (var | const)").value();
+        if (currentToken().type() == TokenType.SEMICOLON) {
+            advance();
+            if (isConstant) {
+                throw new RSLSyntaxTreeException("Attempted to specify an uninitialized constant. Use var instead of const");
+            }
+            return new VarDeclStatement(false, identifier, NullLiteralExpression.INSTANCE);
+        }
+        advanceExpect(TokenType.EQUALS, "Expected equals token in variable declaration statement");
+        var decl = new VarDeclStatement(isConstant, identifier, parseExpr());
+        advanceExpect(TokenType.SEMICOLON, "Expected semicolon after variable declaration.");
+        return decl;
     }
 
     private Expression parseExpr() {
