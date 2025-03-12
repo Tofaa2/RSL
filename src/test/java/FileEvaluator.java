@@ -1,3 +1,4 @@
+import me.tofaa.rsl.GlobalNativeFunctions;
 import me.tofaa.rsl.ast.ProgramStatement;
 import me.tofaa.rsl.environment.Environment;
 import me.tofaa.rsl.interpreter.RSLInterpreter;
@@ -19,7 +20,9 @@ public class FileEvaluator {
             Lexer lexer = Lexer.of(file);
             RSLParser parser = new RSLParser(lexer);
             ProgramStatement program = parser.create();
-            var result = RSLInterpreter.eval(program, new Environment(null));
+            Environment env = new Environment(null);
+            GlobalNativeFunctions.register(env);
+            var result = RSLInterpreter.eval(program, env);
             System.out.printf("FILE: %s output: %s%n", file.getName(), result.toString());
         }
     }

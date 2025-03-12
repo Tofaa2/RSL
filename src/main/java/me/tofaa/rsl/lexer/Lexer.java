@@ -61,6 +61,9 @@ public class Lexer {
                         src.removeFirst();
                     }
                 }
+                case "." -> tokens.add(new Token(src.removeFirst(), TokenType.DOT));
+                case "[" -> tokens.add(new Token(src.removeFirst(), TokenType.L_BRACKET));
+                case "]" -> tokens.add(new Token(src.removeFirst(), TokenType.R_BRACKET));
                 case "{" -> tokens.add(new Token(src.removeFirst(), TokenType.L_BRACE));
                 case "}" -> tokens.add(new Token(src.removeFirst(), TokenType.R_BRACE));
                 case ":" -> tokens.add(new Token(src.removeFirst(), TokenType.COLON));

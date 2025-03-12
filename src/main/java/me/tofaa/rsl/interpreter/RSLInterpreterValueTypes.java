@@ -4,6 +4,8 @@ public enum RSLInterpreterValueTypes {
 
     NULL,
     NUMBER,
-    BOOL
+    BOOL,
+    OBJECT,
+    NATIVE_FUNCTION
 
 }

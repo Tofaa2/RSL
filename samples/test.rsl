@@ -1,7 +1,12 @@
+var foo = 100;
 var obj = {
     x: 100,
     y: 100,
+    foo, # evaluates as foo: foo,
     nestedObj: {
         exists: true
     },
 };
+
+const bar = 1000; #Constant variable, cannot be reassigned.
+# bar = 100 # Uncomment to get an error.

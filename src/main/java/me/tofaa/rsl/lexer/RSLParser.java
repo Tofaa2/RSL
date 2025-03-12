@@ -120,10 +120,11 @@ public class RSLParser {
 
     // Left precedence based multiplicative expression parsing
     private Expression parseMultiplicativeExpr() {
-        var left = parsePrimaryExpr();
+        var left = parseCallMemberExpr();
+
         while (currentToken().value().equals("/") || currentToken().value().equals("*") || currentToken().value().equals("%")) {
             var operator = advance().value();
-            var right = parsePrimaryExpr();
+            var right = parseCallMemberExpr();
             left = new BinaryExpression(
                     left, right, operator
             );
@@ -131,6 +132,69 @@ public class RSLParser {
         return left;
     }
 
+    private Expression parseCallMemberExpr() {
+        var member = parseMemberExpr();
+        if (currentToken().type() == TokenType.L_PAREN) {
+            return parseCallExpr(member);
+        }
+        else {
+            return member;
+        }
+    }
+
+    private Expression parseCallExpr(Expression caller) {
+        Expression callExpr = new CallExpression(parseArgs(), caller);
+
+        if (currentToken().type() == TokenType.L_PAREN) {
+            callExpr = this.parseCallExpr(callExpr);
+        }
+        return callExpr;
+    }
+
+    private List<Expression> parseArgs() {
+        advanceExpect(TokenType.L_PAREN, "Expected open parenthesis");
+        List<Expression> list = currentToken().type() == TokenType.R_PAREN ? List.of() : this.parseArgsList();
+        advanceExpect(TokenType.R_PAREN, "Missing closing parenthesis while creating arguments.");
+        return list;
+    }
+
+    private List<Expression> parseArgsList() {
+        List<Expression> args = new ArrayList<>();
+        args.add(parseAssignmentExpr());
+
+        while (notEof() && currentToken().type() == TokenType.COMMA) {
+            advance();
+            args.add(parseAssignmentExpr());
+        }
+        return args;
+    }
+
+    private Expression parseMemberExpr() {
+        var obj = parsePrimaryExpr();
+        while (currentToken().type() == TokenType.DOT || currentToken().type() == TokenType.L_BRACKET) {
+            var operator = advance();
+            Expression property = null;
+            boolean computed;
+
+            // Non computed dot values
+            if (operator.type() == TokenType.DOT) {
+                computed = false;
+                property =  parsePrimaryExpr();
+                if (property.type() != AstNodeType.IDENTIFIER) {
+                    throw new RSLSyntaxTreeException("Cannot use . operator without being an identifier. Try using computed values syntax [v]");
+                }
+            }
+            // Computed values ["val"] or [myFunc()] includes chaining.
+            else {
+                computed = true;
+                property = parseExpr();
+                advanceExpect(TokenType.R_BRACKET, "Expected a close bracket while attempting to parse computed value call.");
+            }
+
+            obj = new MemberExpression(obj, property, computed);
+        }
+        return obj;
+    }
 
     private Expression parsePrimaryExpr() {
         var token = currentToken().type();

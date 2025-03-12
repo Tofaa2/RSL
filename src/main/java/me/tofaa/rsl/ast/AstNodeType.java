@@ -18,8 +18,8 @@ public enum AstNodeType {
     // EXPR,
     NUM_LITERAL,
     UNARY_EXPR,
-    CALL_EXPR,
     ASSIGNMENT_EXPR,
-
+    MEMBER_EXPR,
+    CALL_EXPR,
 
 }
