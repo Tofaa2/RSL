@@ -2,4 +2,5 @@ var x = 100;
 println(currentTimeMs(), x)
 
 x = x - 100
-println("Hello World", x)
+println("Hello World " * 10) # Repeats the string 10 times.
+println("Hello " + "World") # Joins two or more strings.

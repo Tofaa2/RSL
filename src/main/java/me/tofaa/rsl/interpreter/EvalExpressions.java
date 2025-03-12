@@ -7,6 +7,7 @@ import me.tofaa.rsl.interpreter.runtime.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static me.tofaa.rsl.interpreter.RSLInterpreter.eval;
 
@@ -90,7 +91,34 @@ public final class EvalExpressions {
         if (left.type() == RSLInterpreterValueTypes.NUMBER && right.type() == RSLInterpreterValueTypes.NUMBER) {
             return evalNumericExpr((NumberValue) left, (NumberValue) right, binop.operator());
         }
+        else if (left.type() == RSLInterpreterValueTypes.STRING
+                && right.type() == RSLInterpreterValueTypes.NUMBER || right.type() == RSLInterpreterValueTypes.STRING
+        ) {
+            return evalStringExpr((StringValue)left, right, binop.operator());
+        }
         return  NullValue.INSTANCE;
+    }
+
+    static RuntimeValue evalStringExpr(StringValue s1, RuntimeValue s2, String operator) {
+        if (Objects.equals(operator, "+")) {
+            if (s2 instanceof StringValue(String value)) {
+                return new StringValue(s1.value() + value);
+            }
+            else {
+                throw new RSLInterpretException("Invalid string operation. Strings only support multiply (str * 4) or addition (str + other str).");
+            }
+        }
+        else if (Objects.equals(operator, "*")) {
+            if (s2 instanceof NumberValue(Number value)) {
+                return new StringValue(s1.value().repeat(value.intValue()));
+            }
+            else {
+                throw new RSLInterpretException("Invalid string operation. Strings only support multiply (str * 4) or addition (str + other str).");
+            }
+        }
+        else {
+            throw new RSLInterpretException("Invalid string operation. Strings only support multiply (str * 4) or addition (str + other str).");
+        }
     }
 
     static RuntimeValue evalNumericExpr(NumberValue left, NumberValue right, String operator) {
