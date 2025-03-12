@@ -2,14 +2,15 @@ package me.tofaa.rsl.lexer;
 
 import me.tofaa.rsl.Utils;
 import me.tofaa.rsl.exception.RSLTokenizeException;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.smartcardio.CommandAPDU;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+
+import static me.tofaa.rsl.Utils.isAlpha;
+import static me.tofaa.rsl.Utils.isNumeric;
 
 public class Lexer {
 
@@ -76,16 +77,16 @@ public class Lexer {
                 case "+", "-", "*", "/", "%" -> tokens.add(new Token(src.removeFirst(), TokenType.ARITHMENTIC));
                 case "=" -> tokens.add(new Token(src.removeFirst(), TokenType.EQUALS));
                 default -> {
-                    if (StringUtils.isNumeric(first)) {
+                    if (isNumeric(first)) {
                         StringBuilder sb = new StringBuilder();
-                        while (!src.isEmpty() && StringUtils.isNumeric(src.get(0))) {
+                        while (!src.isEmpty() && isNumeric(src.getFirst())) {
                             sb.append(src.removeFirst());
                         }
                         tokens.add(new Token(sb.toString(), TokenType.NUMBER));
                     }
-                    else if (StringUtils.isAlpha(first)) {
+                    else if (isAlpha(first)) {
                         StringBuilder sb = new StringBuilder();
-                        while (!src.isEmpty() && StringUtils.isAlpha(src.get(0))) {
+                        while (!src.isEmpty() && isAlpha(src.getFirst())) {
                             sb.append(src.removeFirst());
                         }
                         var reserved = RESERVED_TYPES.get(sb.toString());
