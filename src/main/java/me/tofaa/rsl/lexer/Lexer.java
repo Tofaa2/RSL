@@ -4,6 +4,7 @@ import me.tofaa.rsl.Utils;
 import me.tofaa.rsl.exception.RSLTokenizeException;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.smartcardio.CommandAPDU;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,12 +55,16 @@ public class Lexer {
 
                 // Filter comments
                 case "#" -> {
-                    StringBuilder sb = new StringBuilder();
+                    //StringBuilder sb = new StringBuilder();
                     while (!src.isEmpty() && !src.getFirst().equals("\n")) {
-                        sb.append(src.removeFirst());
+                      //  sb.append(src.removeFirst());
+                        src.removeFirst();
                     }
-                    System.out.printf("Found comment: %s%n", sb.toString());
                 }
+                case "{" -> tokens.add(new Token(src.removeFirst(), TokenType.L_BRACE));
+                case "}" -> tokens.add(new Token(src.removeFirst(), TokenType.R_BRACE));
+                case ":" -> tokens.add(new Token(src.removeFirst(), TokenType.COLON));
+                case "," -> tokens.add(new Token(src.removeFirst(), TokenType.COMMA));
                 case ";" -> tokens.add(new Token(src.removeFirst(), TokenType.SEMICOLON));
                 case "(" -> tokens.add(new Token(src.removeFirst(), TokenType.L_PAREN));
                 case ")" -> tokens.add(new Token(src.removeFirst(), TokenType.R_PAREN));
@@ -99,6 +104,7 @@ public class Lexer {
     private boolean isSkippable(String s) {
         if (s.isBlank()) return true;
         if (s.equals("\n")) return true;
+        if (s.equals("\r")) return true;
         return s.equals("\t");
     }
 

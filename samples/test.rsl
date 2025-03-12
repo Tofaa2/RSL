@@ -1,5 +1,7 @@
-var zero = 0
-# Comment 1
-var b = 10 + 5 # Comment 2
-
-# var c = 10
+var obj = {
+    x: 100,
+    y: 100,
+    nestedObj: {
+        exists: true
+    },
+};

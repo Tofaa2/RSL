@@ -58,15 +58,48 @@ public class RSLParser {
 
     private Expression parseExpr() {
         return parseAssignmentExpr();
-        //return parseAdditiveExpr();
+
+    }
+
+    private Expression parseObjectExpr() {
+        if (currentToken().type() != TokenType.L_BRACE) {
+            return parseAdditiveExpr();
+        }
+        advance();
+        var properties = new ArrayList<PropertyLiteralExpression>();
+        while (notEof() && currentToken().type() != TokenType.R_BRACE) {
+
+            var key = advanceExpect(TokenType.IDENTIFIER, "Expected key for object.").value();
+
+            // Shorthand key <-> pair where you just define the key.
+            if (currentToken().type() == TokenType.COMMA) {
+                advance();
+                properties.add(new PropertyLiteralExpression(key, NullLiteralExpression.INSTANCE));
+                continue;
+            }
+            else if (currentToken().type() == TokenType.R_BRACE) {
+                properties.add(new PropertyLiteralExpression(key, NullLiteralExpression.INSTANCE));
+                continue;
+            }
+
+            // Full key: value, parsing
+            advanceExpect(TokenType.COLON, "Missing colon declaration for non-shorthand variable declaration for objects. Use (key:value) syntax");
+            var value = parseExpr();
+            properties.add(new PropertyLiteralExpression(key, value));
+            if (currentToken().type() != TokenType.R_BRACE) {
+                advanceExpect(TokenType.COMMA, "Expected comma or end of object declaration }.");
+            }
+        }
+
+        advanceExpect(TokenType.R_BRACE, "Expected object closing brace }.");
+        return new ObjectLiteralExpression(properties);
     }
 
     private Expression parseAssignmentExpr() {
-        var left = parseMultiplicativeExpr(); // TODO: Objects.
+        var left = parseObjectExpr();
         if (currentToken().type() == TokenType.EQUALS) {
             advance();
-            var value = parseAssignmentExpr(); // TODO: Objets.
-            //advanceExpect(TokenType.SEMICOLON, "Expected semi colon after assignment of expression %s.".formatted(left.type()));
+            var value = parseAssignmentExpr();
             return new AssignmentExpression(left, value);
         }
         return left;

@@ -13,6 +13,11 @@ public enum TokenType {
     R_PAREN,
     SEMICOLON,
 
+    COLON,
+    COMMA,
+    L_BRACE,
+    R_BRACE,
+
     BOOL,
     EOF,
 

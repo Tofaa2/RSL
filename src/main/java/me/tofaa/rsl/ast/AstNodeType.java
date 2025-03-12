@@ -7,12 +7,16 @@ public enum AstNodeType {
     VAR_DECL,
     FUNC_DECL,
 
-    // EXPR,
-    NUM_LITERAL,
+    // Literal
     BOOL_LITERAL,
     NULL_LITERAL,
     IDENTIFIER,
     BINARY_EXPR,
+    PROPERTY,
+    OBJECT,
+
+    // EXPR,
+    NUM_LITERAL,
     UNARY_EXPR,
     CALL_EXPR,
     ASSIGNMENT_EXPR,
