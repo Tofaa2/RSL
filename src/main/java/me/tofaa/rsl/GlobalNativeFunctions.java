@@ -1,11 +1,25 @@
 package me.tofaa.rsl;
 
+import me.tofaa.rsl.exception.RSLInterpretException;
 import me.tofaa.rsl.interpreter.runtime.*;
+
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public final class GlobalNativeFunctions {
 
     private GlobalNativeFunctions() {}
+
+    public static ObjectValue makeMap() {
+        var map = new HashMap<String, RuntimeValue>();
+        map.put("size", new NativeFunctionValue(((environment, arguments) -> {
+            if (!arguments.isEmpty()) {
+                throw new RSLInterpretException("Expected zero arguments for size function call for a map, got " + arguments.size());
+            }
+            return new NumberValue(map.size());
+        })));
+        return new ObjectValue(map);
+    }
 
     public static NativeFunctionValue TO_STR = new NativeFunctionValue(((environment, arguments) -> {
         if (arguments.size() != 1) {
@@ -52,6 +66,8 @@ public final class GlobalNativeFunctions {
         env.declare("currentTimeMs", CURRENT_TIME_MS, true);
         env.declare("typeof", TYPE_OF, true);
         env.declare("toString", TO_STR, true);
+        env.declare("newMap", new NativeFunctionValue(((environment, arguments) -> makeMap())), true);
+
     }
 
 }

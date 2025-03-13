@@ -1,17 +1,9 @@
-fn fibonacci(number) {
-    if number is 0 {
-        println("Number is 0")
-        return 0
+var i = 0;
+while (true) {
+    i = i + 1
+    if i is 10 {
+        println("Reached 10")
+        break
     }
-    elif number is 1 {
-        println("Number is 1")
-        return 1
-    }
-    else {
-        const fib = fibonacci(number - 1) + fibonacci(number - 2);
-        println("Recursion: " + fib)
-        return fib
-    }
+    println(i)
 }
-
-#return fibonacci(10)

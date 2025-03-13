@@ -27,7 +27,10 @@ public final class RSLLexer {
             entry("null", TokenType.NULL),
             entry("if", TokenType.IF),
             entry("elif", TokenType.ELIF),
-            entry("else", TokenType.ELSE)
+            entry("for", TokenType.FOR),
+            entry("while", TokenType.WHILE),
+            entry("else", TokenType.ELSE),
+            entry("break", TokenType.BREAK)
     );
 
     public static List<Token> tokenize(String source) {
@@ -65,7 +68,40 @@ public final class RSLLexer {
                     }
                     tokens.add(new Token(sb.toString(), TokenType.STRING));
                 }
-                case "." -> tokens.add(new Token(src.removeFirst(), TokenType.DOT));
+                case "<" -> {
+                    src.removeFirst();
+                    if (src.getFirst().equals("=")) {
+                        src.removeFirst();
+                        tokens.add(new Token("<=", TokenType.LESS_THAN_OR_EQ));
+                    }
+                    else {
+                        tokens.add(new Token("<", TokenType.LESS_THAN));
+                    }
+                }
+                case ">" -> {
+                    src.removeFirst();
+                    if (src.getFirst().equals("=")) {
+                        src.removeFirst();
+                        tokens.add(new Token(">=", TokenType.GREATER_THAN_OR_EQ));
+                    }
+                    else {
+                        tokens.add(new Token(">", TokenType.GREATER_THAN));
+                    }
+                }
+                case "." -> {
+                    src.removeFirst();
+                    if (src.getFirst().equals(".")) {
+                        src.removeFirst();
+                        tokens.add(new Token("..", TokenType.RANGE_INCLUSIVE));
+                    }
+                    else if (src.getFirst().equals("<")) {
+                        src.removeFirst();
+                        tokens.add(new Token(".<", TokenType.RANGE_EXCLUSIVE));
+                    }
+                    else {
+                        tokens.add(new Token(src.removeFirst(), TokenType.DOT));
+                    }
+                }
                 case "[" -> tokens.add(new Token(src.removeFirst(), TokenType.L_BRACKET));
                 case "]" -> tokens.add(new Token(src.removeFirst(), TokenType.R_BRACKET));
                 case "{" -> tokens.add(new Token(src.removeFirst(), TokenType.L_BRACE));

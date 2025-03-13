@@ -9,6 +9,10 @@ public enum AstNodeType {
     RETURN,
     IF,
 
+    BREAK,
+    LOOP_WHILE,
+    LOOP_FOR,
+
     // Literal
     STRING_LITERAL,
     BOOL_LITERAL,

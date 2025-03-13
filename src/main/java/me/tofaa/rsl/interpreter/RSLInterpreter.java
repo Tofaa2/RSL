@@ -19,6 +19,15 @@ public final class RSLInterpreter {
             case IF -> {
                 return evalIfStatement((IfStatement) astNode, env);
             }
+            case BREAK -> {
+                return BreakValue.INSTANCE;
+            }
+            case LOOP_FOR -> {
+                return evalForLoop((ForLoopStatement) astNode, env);
+            }
+            case LOOP_WHILE -> {
+                return evalWhileStatement((WhileLoopStatement) astNode, env);
+            }
             case RETURN -> {
                 return evalReturnStatement(((ReturnStatement)astNode), env);
             }

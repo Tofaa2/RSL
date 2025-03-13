@@ -58,16 +58,15 @@ final class EvalExpressions {
     }
 
     // Helper method to execute a block and stop if a return statement is found
-    private static RuntimeValue executeBlock(List<Statement> body, Environment env) {
+    static RuntimeValue executeBlock(List<Statement> body, Environment env) {
         for (var statement : body) {
             var result = eval(statement, env);
-            if (result instanceof ReturnValue) {
+            if (result instanceof ReturnValue || result instanceof BreakValue) {
                 return result; // Immediately propagate the return.
             }
         }
         return NullValue.INSTANCE;
     }
-
 
     static RuntimeValue evalReturnStatement(ReturnStatement stmt, Environment env) {
         RuntimeValue result = eval(stmt.expr(), env);
@@ -220,6 +219,26 @@ final class EvalExpressions {
 
     static RuntimeValue evalNumericExpr(NumberValue left, NumberValue right, String operator) {
         switch (operator) {
+            case "<" -> {
+                return new BooleanValue(
+                        left.value().doubleValue() < right.value().doubleValue()
+                );
+            }
+            case "<=" -> {
+                return new BooleanValue(
+                        left.value().doubleValue() <= right.value().doubleValue()
+                );
+            }
+            case ">" -> {
+                return new BooleanValue(
+                        left.value().doubleValue() > right.value().doubleValue()
+                );
+            }
+            case ">=" -> {
+                return new BooleanValue(
+                        left.value().doubleValue() >= right.value().doubleValue()
+                );
+            }
             case "+" -> {
                 if (left.value() instanceof Double || right.value() instanceof Double) {
                     return new NumberValue(left.value().doubleValue() + right.value().doubleValue());

@@ -5,7 +5,7 @@ import java.io.File;
 public class FileEvaluator {
 
     public static void main(String[] args) {
-        if (false) {
+        if (true) {
             RSLScript script = new RSLScript()
                     .registerDefaultGlobals();
             var res = script.eval(new File("samples/test.rsl").toPath());

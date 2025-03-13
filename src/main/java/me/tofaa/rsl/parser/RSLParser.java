@@ -42,15 +42,6 @@ public class RSLParser {
         }
     }
 
-//    private StringLiteralExpression parseString() {
-//        StringBuilder sb = new StringBuilder();
-//        advanceExpect(TokenType.DOUBLE_QUOTE, "Expected double quote for string start.");
-//        while (notEof() && currentToken().type() != TokenType.DOUBLE_QUOTE) {
-//            sb.append(advance().value());
-//        }
-//        return new StringLiteralExpression(sb.toString());
-//    }
-
     private FuncDeclStatement parseFnDecl() {
         advance();
         var name = advanceExpect(TokenType.IDENTIFIER, "Expected function identifier.");
@@ -95,19 +86,18 @@ public class RSLParser {
 
     private Expression parseConditionalExpr() {
         var left = parseAssignmentExpr();
-
-        while (currentToken().type() == TokenType.IS ||
-                currentToken().type() == TokenType.AND ||
-                currentToken().type() == TokenType.OR ||
-                currentToken().type() == TokenType.NOT) {
-
+        while (currentToken().type() == TokenType.IS
+                || currentToken().type() == TokenType.AND
+                || currentToken().type() == TokenType.OR
+                || currentToken().type() == TokenType.LESS_THAN
+                || currentToken().type() == TokenType.GREATER_THAN
+                || currentToken().type() == TokenType.LESS_THAN_OR_EQ
+                || currentToken().type() == TokenType.GREATER_THAN_OR_EQ) {
             var operatorToken = advance();
             String operator = operatorToken.value();
-
             var right = parseAssignmentExpr();
             left = new BinaryExpression(left, right, operator);
         }
-
         return left;
     }
 
@@ -292,6 +282,16 @@ public class RSLParser {
                 advanceExpect(TokenType.R_PAREN, "Unexpected token found. Expected closing parenthesis");
                 return value;
             }
+            case FOR -> {
+                return parseForLoop();
+            }
+            case WHILE -> {
+                return parseWhileLoop();
+            }
+            case BREAK ->  {
+                advance();
+                return BreakStatement.INSTANCE;
+            }
             case IF -> {
                 advance();
                 var condition = parseExpr();
@@ -330,6 +330,7 @@ public class RSLParser {
                     advanceExpect(TokenType.R_BRACE, "Expected '}' after else block");
                 }
 
+
                 return new IfStatement(condition, body, elifBlocks, elseBlock);
             }
 
@@ -337,6 +338,48 @@ public class RSLParser {
                 throw new RSLSyntaxTreeException("Unexpected token found at: " + currentToken());
             }
         }
+    }
+
+    private WhileLoopStatement parseWhileLoop() {
+        advance(); // Consume "while"
+        var condition = parseExpr(); // Parse the condition expression
+        advanceExpect(TokenType.L_BRACE, "Expected '{' after while condition");
+
+        var body = new ArrayList<Statement>();
+        while (notEof() && currentToken().type() != TokenType.R_BRACE) {
+            body.add(parseStatement());
+        }
+
+        advanceExpect(TokenType.R_BRACE, "Expected '}' after while loop body");
+        return new WhileLoopStatement(condition, body);
+    }
+
+    private ForLoopStatement parseForLoop() {
+        advance(); // Consume 'for'
+        advanceExpect(TokenType.L_PAREN, "Expected '(' after 'for'");
+
+        // Get the loop variable
+        var loopVar = advanceExpect(TokenType.IDENTIFIER, "Expected loop variable identifier").value();
+
+        // Determine if it's an inclusive or exclusive range
+        var rangeType = advance();
+        if (rangeType.type() != TokenType.RANGE_INCLUSIVE && rangeType.type() != TokenType.RANGE_EXCLUSIVE) {
+            System.out.println(rangeType.type());
+            throw new RSLTokenizeException("Expected '..' or '.<' for range in for loop");
+        }
+
+        // Get the upper bound expression
+        var upperBound = parseExpr();
+        advanceExpect(TokenType.R_PAREN, "Expected ')' after for loop range");
+        advanceExpect(TokenType.L_BRACE, "Expected '{' to start for loop body");
+
+        var body = new ArrayList<Statement>();
+        while (notEof() && currentToken().type() != TokenType.R_BRACE) {
+            body.add(parseStatement());
+        }
+        advanceExpect(TokenType.R_BRACE, "Expected '}' to close for loop body");
+
+        return new ForLoopStatement(loopVar, upperBound, rangeType.type() == TokenType.RANGE_INCLUSIVE, body);
     }
 
     private Token advanceExpect(TokenType required, String msg) {

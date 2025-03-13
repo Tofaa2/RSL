@@ -4,13 +4,21 @@ public enum TokenType {
 
     NULL,
 
+    FOR,
+    WHILE,
+    BREAK,
+    RANGE_EXCLUSIVE,
+    RANGE_INCLUSIVE,
+
     // Logic
     IS,
     NOT,
     AND,
     OR,
     GREATER_THAN,
+    GREATER_THAN_OR_EQ,
     LESS_THAN,
+    LESS_THAN_OR_EQ,
     IF,
     ELSE,
     ELIF,
