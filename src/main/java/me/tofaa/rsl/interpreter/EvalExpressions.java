@@ -5,6 +5,7 @@ import me.tofaa.rsl.Environment;
 import me.tofaa.rsl.exception.RSLInterpretException;
 import me.tofaa.rsl.interpreter.runtime.*;
 
+import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -151,14 +152,82 @@ final class EvalExpressions {
         return object;
     }
 
-    static RuntimeValue evalAssignment(AssignmentExpression expr, Environment env) {
-        // TODO: Objects
-        if (expr.assigned().type() != AstNodeType.IDENTIFIER) {
-            throw new RSLInterpretException(String.format("Attempted to reassign a non identifier. %s", expr.assigned().type()));
+    static RuntimeValue evalObjectField(MemberExpression expr, Environment env) {
+        RuntimeValue objectRuntimeVal = eval(expr.object(), env);
+        if (!(objectRuntimeVal instanceof ObjectValue(java.util.Map<String, RuntimeValue> properties))) {
+            throw new RSLInterpretException("Attempted to access a field on a non-object: " + expr.object());
         }
-        var name = ((IdentifierExpression)expr.assigned()).value();
-        return env.assign(name, eval(expr.value(), env));
+
+        RuntimeValue propertyRuntimeVal;
+        if (expr.computed()) {
+            // If computed, evaluate the property expression dynamically
+            propertyRuntimeVal = eval(expr.property(), env);
+
+            if (!(propertyRuntimeVal instanceof StringValue)) {
+                throw new RSLInterpretException("Computed property must evaluate to a string: " + expr.property());
+            }
+        } else {
+            // If not computed, directly use the static property (should be a string literal)
+            if (!(expr.property() instanceof IdentifierExpression)) {
+                throw new RSLInterpretException("Non-computed property must be a string literal: " + expr.property());
+            }
+            propertyRuntimeVal = new StringValue(((IdentifierExpression) expr.property()).value());
+        }
+
+        String propertyName = ((StringValue) propertyRuntimeVal).value();
+        RuntimeValue propertyValue = properties.get(propertyName);
+
+        if (propertyValue == null) {
+            throw new RSLInterpretException("Property '" + propertyName + "' not found in object.");
+        }
+
+        return propertyValue;
     }
+
+    static RuntimeValue evalAssignment(AssignmentExpression expr, Environment env) {
+        if (expr.assigned().type() == AstNodeType.IDENTIFIER) {
+            var name = ((IdentifierExpression)expr.assigned()).value();
+            return env.assign(name, eval(expr.value(), env));
+        }
+        if (expr.assigned() instanceof MemberExpression memberExpr) {
+            // Object property assignment (e.g., obj.complex.bar = 42)
+            return evalObjectAssignment(memberExpr, expr.value(), env);
+        }
+        throw new RSLInterpretException(String.format("Attempted to reassign a non identifier. %s", expr.assigned().type()));
+    }
+
+    static RuntimeValue evalObjectAssignment(MemberExpression expr, Expression valueExpr, Environment env) {
+        RuntimeValue objectRuntimeVal = eval(expr.object(), env);
+
+        if (!(objectRuntimeVal instanceof ObjectValue object)) {
+            throw new RSLInterpretException("Attempted to assign to a field of a non-object: " + expr.object());
+        }
+
+        RuntimeValue propertyRuntimeVal;
+        if (expr.computed()) {
+            propertyRuntimeVal = eval(expr.property(), env);
+
+            if (!(propertyRuntimeVal instanceof StringValue stringValue)) {
+                throw new RSLInterpretException("Computed property must evaluate to a string: " + expr.property());
+            }
+        } else {
+            if (!(expr.property() instanceof IdentifierExpression identifierExpr)) {
+                throw new RSLInterpretException("Non-computed property must be an identifier: " + expr.property());
+            }
+            propertyRuntimeVal = new StringValue(identifierExpr.value());
+        }
+
+        String propertyName = ((StringValue) propertyRuntimeVal).value();
+
+        // Evaluate the new value to assign
+        RuntimeValue newValue = eval(valueExpr, env);
+
+        // Assign the new value to the object
+        object.properties().put(propertyName, newValue);
+
+        return newValue;
+    }
+
 
     static RuntimeValue evalIdentifier(IdentifierExpression id, Environment env) {
         return env.lookup(id.value());

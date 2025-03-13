@@ -89,6 +89,7 @@ public final class RSLLexer {
                     }
                 }
                 case "." -> {
+                    //var second = src.get(1);
                     src.removeFirst();
                     if (src.getFirst().equals(".")) {
                         src.removeFirst();
@@ -99,7 +100,7 @@ public final class RSLLexer {
                         tokens.add(new Token(".<", TokenType.RANGE_EXCLUSIVE));
                     }
                     else {
-                        tokens.add(new Token(src.removeFirst(), TokenType.DOT));
+                        tokens.add(new Token(".", TokenType.DOT));
                     }
                 }
                 case "[" -> tokens.add(new Token(src.removeFirst(), TokenType.L_BRACKET));

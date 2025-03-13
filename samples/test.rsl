@@ -1,9 +1,25 @@
-var i = 0;
-while (true) {
-    i = i + 1
-    if i is 10 {
-        println("Reached 10")
-        break
-    }
-    println(i)
+var foo = 50 / 2;
+
+fn std() {
+    return 100
 }
+
+const obj = {
+  x: 100,
+  y: 32,
+  foo: foo,
+  complex: {
+    bar: true,
+  },
+  amogus: std,
+  bean: fn() {
+    return 200
+  }
+};
+
+var f = obj.complex.bar;
+foo = obj.foo + 5
+
+obj.complex = 200
+obj.bean = 100
+return obj.bean

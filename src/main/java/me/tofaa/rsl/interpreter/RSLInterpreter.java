@@ -64,6 +64,9 @@ public final class RSLInterpreter {
             case STRING_LITERAL -> {
                 return new StringValue(((StringLiteralExpression)astNode).value());
             }
+            case MEMBER_EXPR -> {
+                return evalObjectField((MemberExpression)astNode, env);
+            }
 
             default -> {
                 throw new RSLInterpretException("Unrecognized statement supplied: " + astNode);

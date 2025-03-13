@@ -34,7 +34,7 @@ public class RSLParser {
                 return parseVarDecl();
             }
             case FN -> {
-                return parseFnDecl();
+                return parseFnDecl(false);
             }
             default -> {
                 return parseExpr();
@@ -42,9 +42,12 @@ public class RSLParser {
         }
     }
 
-    private FuncDeclStatement parseFnDecl() {
+    private FuncDeclStatement parseFnDecl(boolean inObj) {
         advance();
-        var name = advanceExpect(TokenType.IDENTIFIER, "Expected function identifier.");
+        Token name = new Token("", TokenType.IDENTIFIER);
+        if (!inObj) {
+            name = advanceExpect(TokenType.IDENTIFIER, "Expected function identifier.");
+        }
         var args = parseArgs();
         var params = new ArrayList<String>(args.size());
         for (var arg : args) {
@@ -63,7 +66,7 @@ public class RSLParser {
         advanceExpect(TokenType.R_BRACE, "Expected function body close parenthesis for function declaration");
 
         return new FuncDeclStatement(
-                params, name.value(), body
+                params, name.value(), inObj, body
         );
     }
 
@@ -291,6 +294,9 @@ public class RSLParser {
             case BREAK ->  {
                 advance();
                 return BreakStatement.INSTANCE;
+            }
+            case FN -> {
+                return parseFnDecl(true);
             }
             case IF -> {
                 advance();
