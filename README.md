@@ -1,6 +1,9 @@
 # RSL Programming Language
 RSL is a dynamically typed interpreted programming language made in Java. Although the name is a meme it can do pretty much anything a scripting language needs to do. Its primary purpose is to be a light scripting language for java applications to define and return values for specific logic in your code, for example determine the speed of a player in your game. _NOTE: This project is still under development and has no concrete stable release yet. If you stumble upon bugs or undefined behaviour please make an issue_
 
+If you like this and or wish to sponsor me, visit my [ko-fi page](https://ko-fi.com/tofaa) :D 
+
+
 ## Functionality
 Below is a loose explanation of the functionality of the language. You can check out the samples folder in this repository to get some more examples.
 
