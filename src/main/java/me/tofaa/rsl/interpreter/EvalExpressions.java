@@ -1,19 +1,78 @@
 package me.tofaa.rsl.interpreter;
 
 import me.tofaa.rsl.ast.*;
-import me.tofaa.rsl.environment.Environment;
+import me.tofaa.rsl.Environment;
 import me.tofaa.rsl.exception.RSLInterpretException;
 import me.tofaa.rsl.interpreter.runtime.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 import static me.tofaa.rsl.interpreter.RSLInterpreter.eval;
 
-public final class EvalExpressions {
+final class EvalExpressions {
 
     private EvalExpressions() {}
+
+
+    static RuntimeValue evalIfStatement(IfStatement stmt, Environment env) {
+        var condition = eval(stmt.condition(), env);
+
+        if (!(condition instanceof BooleanValue boolVal)) {
+            throw new RSLInterpretException("If condition must evaluate to a boolean. Got: " + condition.type());
+        }
+
+        if (boolVal.b()) {
+            var result = executeBlock(stmt.body(), env);
+            if (result != NullValue.INSTANCE) {
+                return result; // Return early if a return value was found
+            }
+        }
+
+        // Check elif blocks
+        for (var elifStmt : stmt.elifBlocks()) {
+            var elifCondition = eval(elifStmt.condition(), env);
+            if (!(elifCondition instanceof BooleanValue elifBool)) {
+                throw new RSLInterpretException("Elif condition must evaluate to a boolean. Got: " + elifCondition.type());
+            }
+
+            if (elifBool.b()) {
+                var result = executeBlock(elifStmt.body(), env);
+                if (result != NullValue.INSTANCE) {
+                    return result;
+                }
+            }
+        }
+
+        // Check else block
+        if (stmt.elseBlock() != null) {
+            var result = executeBlock(stmt.elseBlock(), env);
+            if (result != NullValue.INSTANCE) {
+                return result;
+            }
+        }
+
+        return NullValue.INSTANCE;
+    }
+
+    // Helper method to execute a block and stop if a return statement is found
+    private static RuntimeValue executeBlock(List<Statement> body, Environment env) {
+        for (var statement : body) {
+            var result = eval(statement, env);
+            if (result instanceof ReturnValue) {
+                return result; // Immediately propagate the return.
+            }
+        }
+        return NullValue.INSTANCE;
+    }
+
+
+    static RuntimeValue evalReturnStatement(ReturnStatement stmt, Environment env) {
+        RuntimeValue result = eval(stmt.expr(), env);
+        return new ReturnValue(result);
+    }
 
     static RuntimeValue evalCallExpr(CallExpression obj, Environment env) {
         var args = new ArrayList<RuntimeValue>();
@@ -27,26 +86,55 @@ public final class EvalExpressions {
             return callable.call(env, args);
         }
         else if (fn.type() == RSLInterpreterValueTypes.FUNCTION) {
-            var function = ((FunctionValue)fn);
+            var function = ((FunctionValue) fn);
             var scope = new Environment(function.parentScope());
+
+            // Bind function parameters.
             for (int i = 0; i < function.params().size(); i++) {
                 var name = function.params().get(i);
                 if (i >= args.size()) {
                     throw new RSLInterpretException(
                             "Passed invalid amount of arguments into a function. Expected %s received %s".formatted(
-                                    String.valueOf(function.params().size()),
-                                    String.valueOf(args.size())
+                                    function.params().size(), args.size()
                             )
                     );
                 }
                 var argument = args.get(i);
-                scope.declare(name, argument, false); // Mutable fun!
+                scope.declare(name, argument, false);
             }
-            RuntimeValue result = NullValue.INSTANCE;
+
+            // Execute the function body and return as soon as a ReturnValue is encountered.
             for (var stmt : function.body()) {
-                result = eval(stmt, scope);
+                var res = eval(stmt, scope);
+                if (res instanceof ReturnValue) {
+                    // Unwrap the ReturnValue before returning from the function.
+                    return ((ReturnValue) res).value();
+                }
             }
-            return result;
+            return NullValue.INSTANCE;
+//            var function = ((FunctionValue)fn);
+//            var scope = new Environment(function.parentScope());
+//            for (int i = 0; i < function.params().size(); i++) {
+//                var name = function.params().get(i);
+//                if (i >= args.size()) {
+//                    throw new RSLInterpretException(
+//                            "Passed invalid amount of arguments into a function. Expected %s received %s".formatted(
+//                                    String.valueOf(function.params().size()),
+//                                    String.valueOf(args.size())
+//                            )
+//                    );
+//                }
+//                var argument = args.get(i);
+//                scope.declare(name, argument, false); // Mutable fun!
+//            }
+//            RuntimeValue result = NullValue.INSTANCE;
+//            for (var stmt : function.body()) {
+//                var res = eval(stmt, scope);
+//                if (stmt instanceof ReturnStatement) {
+//                    result = res;
+//                }
+//            }
+//            return result;
         }
         else {
             throw new RSLInterpretException("Attempted to call a non function value. Called: %s".formatted(fn));
@@ -87,7 +175,13 @@ public final class EvalExpressions {
     static RuntimeValue evalBinaryExpr(BinaryExpression binop, Environment env) {
         var left = eval(binop.left(), env);
         var right = eval(binop.right(), env);
-
+        var operator = binop.operator();
+        if (operator.equals("is")) {
+            return new BooleanValue(left.equals(right));
+        }
+        if (operator.equals("not")) {
+            return new BooleanValue(!left.equals(right));
+        }
         if (left.type() == RSLInterpreterValueTypes.NUMBER && right.type() == RSLInterpreterValueTypes.NUMBER) {
             return evalNumericExpr((NumberValue) left, (NumberValue) right, binop.operator());
         }
@@ -167,7 +261,10 @@ public final class EvalExpressions {
                 }
             }
         }
-        throw new RSLInterpretException("Invalid numeric operation.");
+        throw new RSLInterpretException(
+                "Invalid numeric operation. Received %s %s %s".formatted(
+                        left.toString(), operator, right.toString()
+                ));
     }
 
 }

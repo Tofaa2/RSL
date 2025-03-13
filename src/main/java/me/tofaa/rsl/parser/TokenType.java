@@ -1,8 +1,20 @@
-package me.tofaa.rsl.lexer;
+package me.tofaa.rsl.parser;
 
 public enum TokenType {
 
     NULL,
+
+    // Logic
+    IS,
+    NOT,
+    AND,
+    OR,
+    GREATER_THAN,
+    LESS_THAN,
+    IF,
+    ELSE,
+    ELIF,
+
     NUMBER,
     IDENTIFIER,
     EQUALS,
@@ -16,17 +28,14 @@ public enum TokenType {
     RETURN,
     L_BRACKET,
     R_BRACKET,
-
-    DOUBLE_QUOTE,
     STRING,
-
     DOT,
     COLON,
     COMMA,
     L_BRACE,
     R_BRACE,
-
     BOOL,
+
     EOF,
 
     ;

@@ -1,6 +1,6 @@
 package me.tofaa.rsl.interpreter.runtime;
 
-import me.tofaa.rsl.environment.Environment;
+import me.tofaa.rsl.Environment;
 
 import java.util.List;
 

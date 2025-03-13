@@ -1,7 +1,7 @@
 package me.tofaa.rsl.interpreter.runtime;
 
 import me.tofaa.rsl.ast.Statement;
-import me.tofaa.rsl.environment.Environment;
+import me.tofaa.rsl.Environment;
 import me.tofaa.rsl.interpreter.RSLInterpreterValueTypes;
 
 import java.util.List;

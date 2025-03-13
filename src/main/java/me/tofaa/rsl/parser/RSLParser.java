@@ -1,4 +1,4 @@
-package me.tofaa.rsl.lexer;
+package me.tofaa.rsl.parser;
 
 import me.tofaa.rsl.Utils;
 import me.tofaa.rsl.ast.*;
@@ -16,8 +16,8 @@ public class RSLParser {
         this.tokens = tokens;
     }
 
-    public RSLParser(Lexer l) {
-        this.tokens = l.tokenize();
+    public RSLParser(String source) {
+        this.tokens = RSLLexer.tokenize(source);
     }
 
     public ProgramStatement create() {
@@ -93,9 +93,37 @@ public class RSLParser {
         return decl;
     }
 
+    private Expression parseConditionalExpr() {
+        var left = parseAssignmentExpr();
+
+        while (currentToken().type() == TokenType.IS ||
+                currentToken().type() == TokenType.AND ||
+                currentToken().type() == TokenType.OR ||
+                currentToken().type() == TokenType.NOT) {
+
+            var operatorToken = advance();
+            String operator = operatorToken.value();
+
+            var right = parseAssignmentExpr();
+            left = new BinaryExpression(left, right, operator);
+        }
+
+        return left;
+    }
+
     private Expression parseExpr() {
+        if (
+                lookup(1).type() == TokenType.IS
+                        || lookup(1).type() == TokenType.AND
+                        || lookup(1).type() == TokenType.OR
+        ) {
+            return parseConditionalExpr();
+        }
         return parseAssignmentExpr();
     }
+
+
+
 
     private Expression parseObjectExpr() {
         if (currentToken().type() != TokenType.L_BRACE) {
@@ -232,6 +260,8 @@ public class RSLParser {
         return obj;
     }
 
+
+
     private Expression parsePrimaryExpr() {
         var token = currentToken().type();
 
@@ -239,20 +269,13 @@ public class RSLParser {
             case IDENTIFIER -> {
                 return new IdentifierExpression(advance().value());
             }
+            case RETURN -> {
+                advance();
+                return new ReturnStatement(parseExpr());
+            }
             case STRING ->  {
                 return new StringLiteralExpression(advance().value());
             }
-//            case DOUBLE_QUOTE -> {
-//                advance();
-//                StringBuilder sb = new StringBuilder();
-//                while (notEof() && currentToken().type() != TokenType.DOUBLE_QUOTE) {
-//                    sb.append()
-//                }
-//                var value = new StringLiteralExpression(advance().value());
-//                System.out.println(value.value());
-//                advanceExpect(TokenType.DOUBLE_QUOTE, "Unexpected end of string literal.");
-//                return value;
-//            }
             case NULL -> {
                 advance();
                 return NullLiteralExpression.INSTANCE;
@@ -269,12 +292,51 @@ public class RSLParser {
                 advanceExpect(TokenType.R_PAREN, "Unexpected token found. Expected closing parenthesis");
                 return value;
             }
+            case IF -> {
+                advance();
+                var condition = parseExpr();
+                advanceExpect(TokenType.L_BRACE, "Expected '{' after if condition");
+
+                var body = new ArrayList<Statement>();
+                while (notEof() && currentToken().type() != TokenType.R_BRACE) {
+                    body.add(parseStatement());
+                }
+                advanceExpect(TokenType.R_BRACE, "Expected '}' after if statement body");
+
+                // Parse elif and else
+                List<IfStatement> elifBlocks = new ArrayList<>();
+                List<Statement> elseBlock = null;
+
+                while (currentToken().type() == TokenType.ELIF) {
+                    advance();
+                    var elifCondition = parseExpr();
+                    advanceExpect(TokenType.L_BRACE, "Expected '{' after elif condition");
+
+                    var elifBody = new ArrayList<Statement>();
+                    while (notEof() && currentToken().type() != TokenType.R_BRACE) {
+                        elifBody.add(parseStatement());
+                    }
+                    advanceExpect(TokenType.R_BRACE, "Expected '}' after elif block");
+                    elifBlocks.add(new IfStatement(elifCondition, elifBody, null, null));
+                }
+
+                if (currentToken().type() == TokenType.ELSE) {
+                    advance();
+                    advanceExpect(TokenType.L_BRACE, "Expected '{' after else");
+                    elseBlock = new ArrayList<>();
+                    while (notEof() && currentToken().type() != TokenType.R_BRACE) {
+                        elseBlock.add(parseStatement());
+                    }
+                    advanceExpect(TokenType.R_BRACE, "Expected '}' after else block");
+                }
+
+                return new IfStatement(condition, body, elifBlocks, elseBlock);
+            }
 
             default -> {
                 throw new RSLSyntaxTreeException("Unexpected token found at: " + currentToken());
             }
         }
-
     }
 
     private Token advanceExpect(TokenType required, String msg) {
@@ -299,5 +361,9 @@ public class RSLParser {
         return tokens.getFirst().type() != TokenType.EOF;
     }
 
+
+    private Token lookup(int pos) {
+        return tokens.get(pos);
+    }
 
 }

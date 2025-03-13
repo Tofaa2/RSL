@@ -2,15 +2,16 @@ package me.tofaa.rsl.interpreter;
 
 import me.tofaa.rsl.ast.FuncDeclStatement;
 import me.tofaa.rsl.ast.ProgramStatement;
+import me.tofaa.rsl.ast.ReturnStatement;
 import me.tofaa.rsl.ast.VarDeclStatement;
-import me.tofaa.rsl.environment.Environment;
+import me.tofaa.rsl.Environment;
 import me.tofaa.rsl.interpreter.runtime.FunctionValue;
 import me.tofaa.rsl.interpreter.runtime.NullValue;
 import me.tofaa.rsl.interpreter.runtime.RuntimeValue;
 
 import static me.tofaa.rsl.interpreter.RSLInterpreter.eval;
 
-public final class EvalStatements {
+final class EvalStatements {
 
     private EvalStatements() {}
 
@@ -32,7 +33,10 @@ public final class EvalStatements {
         RuntimeValue lastEvaled = NullValue.INSTANCE;
 
         for (var element : programStatement.body()) {
-            lastEvaled = eval(element, env);
+            var evaled = eval(element, env);
+            if (element instanceof ReturnStatement) {
+                lastEvaled = evaled;
+            }
         }
 
         return lastEvaled;

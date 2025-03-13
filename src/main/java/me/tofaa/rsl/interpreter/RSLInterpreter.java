@@ -1,7 +1,7 @@
 package me.tofaa.rsl.interpreter;
 
 import me.tofaa.rsl.ast.*;
-import me.tofaa.rsl.environment.Environment;
+import me.tofaa.rsl.Environment;
 import me.tofaa.rsl.exception.RSLInterpretException;
 import me.tofaa.rsl.interpreter.runtime.*;
 
@@ -15,6 +15,12 @@ public final class RSLInterpreter {
         switch (astNode.type()) {
             case OBJECT -> {
                 return evalObject((ObjectLiteralExpression) astNode, env);
+            }
+            case IF -> {
+                return evalIfStatement((IfStatement) astNode, env);
+            }
+            case RETURN -> {
+                return evalReturnStatement(((ReturnStatement)astNode), env);
             }
             case CALL_EXPR -> {
                 return evalCallExpr((CallExpression) astNode, env);

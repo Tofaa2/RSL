@@ -1,17 +1,14 @@
 fn fibonacci(number) {
     if number is 0 {
-        println("Number is 0")
         return 0
     }
     elif number is 1 {
-        println("Number is 1")
         return 1
     }
     else {
         const fib = fibonacci(number - 1) + fibonacci(number - 2);
-        println("Recursion: " + fib)
         return fib
     }
 }
 
-#return fibonacci(10)
+return fibonacci(10)

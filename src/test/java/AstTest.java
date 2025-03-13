@@ -1,5 +1,4 @@
-import me.tofaa.rsl.lexer.Lexer;
-import me.tofaa.rsl.lexer.RSLParser;
+import me.tofaa.rsl.parser.RSLParser;
 
 import java.util.Scanner;
 
@@ -15,8 +14,7 @@ public class AstTest {
             if (line == null || line.isBlank() || line.equalsIgnoreCase("exit")) {
                 break;
             }
-            RSLParser parser = new RSLParser(Lexer.of(line));
-            var program = parser.create();
+            var program = new RSLParser(line).create();
             System.out.println(program.toString());
         }
     }

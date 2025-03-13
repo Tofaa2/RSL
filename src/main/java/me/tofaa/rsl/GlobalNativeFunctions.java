@@ -1,6 +1,5 @@
 package me.tofaa.rsl;
 
-import me.tofaa.rsl.environment.Environment;
 import me.tofaa.rsl.interpreter.runtime.*;
 import java.util.stream.Collectors;
 

@@ -1,12 +1,30 @@
 package me.tofaa.rsl;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class Utils {
 
     private Utils() {
 
+    }
+
+    public static String readFileContent(Path path) {
+        try {
+            return Files.readString(path);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <K, V> Map.Entry<K, V>  entry(K key, V value) {
+        return new AbstractMap.SimpleImmutableEntry<>(key, value);
     }
 
     public static boolean isNumeric(final String cs) {

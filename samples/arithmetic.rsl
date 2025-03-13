@@ -1,14 +1,3 @@
-fn fancyAdd(a, b) {
-    fn insideA(a, b) {
-        a + b
-    }
-    insideA(a, b)
-}
+println("Hello World")
 
-fn add(a, b) {
-    a + b
-}
-
-println("Addition result: " + add(5, -3))
-
-println("Funky: " + (5 - -5))
+return 10

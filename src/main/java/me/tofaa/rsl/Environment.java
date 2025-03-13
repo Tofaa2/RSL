@@ -1,4 +1,4 @@
-package me.tofaa.rsl.environment;
+package me.tofaa.rsl;
 
 import me.tofaa.rsl.exception.RSLInterpretException;
 import me.tofaa.rsl.interpreter.runtime.RuntimeValue;

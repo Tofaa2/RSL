@@ -6,6 +6,8 @@ public enum AstNodeType {
     PROGRAM,
     VAR_DECL,
     FUNC_DECL,
+    RETURN,
+    IF,
 
     // Literal
     STRING_LITERAL,

@@ -1,7 +1,6 @@
-import me.tofaa.rsl.environment.Environment;
+import me.tofaa.rsl.Environment;
 import me.tofaa.rsl.interpreter.RSLInterpreter;
-import me.tofaa.rsl.lexer.Lexer;
-import me.tofaa.rsl.lexer.RSLParser;
+import me.tofaa.rsl.parser.RSLParser;
 
 import java.util.Scanner;
 
@@ -20,7 +19,7 @@ public class InterpreterTest {
                 System.out.println("Exiting repl...");
                 break;
             }
-            RSLParser parser = new RSLParser(Lexer.of(line));
+            RSLParser parser = new RSLParser(line);
             var program = parser.create();
 
             long n = System.nanoTime();

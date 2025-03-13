@@ -1,53 +1,36 @@
-package me.tofaa.rsl.lexer;
+package me.tofaa.rsl.parser;
 
 import me.tofaa.rsl.Utils;
 import me.tofaa.rsl.exception.RSLTokenizeException;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
-import static me.tofaa.rsl.Utils.isAlpha;
-import static me.tofaa.rsl.Utils.isNumeric;
+import static me.tofaa.rsl.Utils.*;
 
-public class Lexer {
+public final class RSLLexer {
 
-    public static Lexer of(File path) {
-        return of(path.toPath());
-    }
+    private RSLLexer() {}
 
-    public static Lexer of(Path path) {
-        try {
-            return new Lexer(Files.readString(path));
-        }
-        catch (IOException e) {
-            throw new RSLTokenizeException(e);
-        }
-    }
-
-    public static Lexer of(String source) {
-        return new Lexer(source);
-    }
-
-    private static final Map<String, TokenType> RESERVED_TYPES = Map.of(
-            "var", TokenType.VARIABLE,
-            "const", TokenType.CONSTANT,
-            "false", TokenType.BOOL,
-            "true", TokenType.BOOL,
-            "fn", TokenType.FN,
-            "return", TokenType.RETURN,
-            "null", TokenType.NULL
+    private static final Map<String, TokenType> RESERVED_TYPES = Map.ofEntries(
+            entry("var", TokenType.VARIABLE),
+            entry("const", TokenType.CONSTANT),
+            entry("false", TokenType.BOOL),
+            entry("true", TokenType.BOOL),
+            entry("fn", TokenType.FN),
+            entry("is", TokenType.IS),
+            entry("and", TokenType.AND),
+            entry("or", TokenType.OR),
+            entry("not", TokenType.NOT),
+            entry("<", TokenType.LESS_THAN),
+            entry(">", TokenType.GREATER_THAN),
+            entry("return", TokenType.RETURN),
+            entry("null", TokenType.NULL),
+            entry("if", TokenType.IF),
+            entry("elif", TokenType.ELIF),
+            entry("else", TokenType.ELSE)
     );
 
-
-    private final String source;
-    private Lexer(String source) {
-        this.source = source;
-    }
-
-    public List<Token> tokenize() {
+    public static List<Token> tokenize(String source) {
         var tokens = new ArrayList<Token>();
         var src = Utils.stringListFromCharArr(source.toCharArray());
 
@@ -69,6 +52,9 @@ public class Lexer {
                     src.removeFirst();
                     boolean complete = false;
                     while (!complete) {
+                        if (src.isEmpty()) {
+                            throw new RSLTokenizeException("Expected a double quote for closing string got end of file");
+                        }
                         if (src.getFirst().equals("\"")) {
                             complete = true;
                             src.removeFirst();
@@ -132,23 +118,15 @@ public class Lexer {
                 }
             }
         }
-        tokens.add(new Token("EndOfFile", TokenType.EOF));
+        tokens.add(Token.EOF);
         return tokens;
     }
 
-    private boolean isSkippable(String s) {
+    private static boolean isSkippable(String s) {
         if (s.isBlank()) return true;
         if (s.equals("\n")) return true;
         if (s.equals("\r")) return true;
         return s.equals("\t");
-    }
-
-    public Token create(String s, TokenType type) {
-        return new Token(s, type);
-    }
-
-    public boolean eq(String s, String o) {
-        return Objects.equals(s, o);
     }
 
 

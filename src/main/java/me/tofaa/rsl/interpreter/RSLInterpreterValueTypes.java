@@ -8,6 +8,6 @@ public enum RSLInterpreterValueTypes {
     OBJECT,
     NATIVE_FUNCTION,
     STRING,
-    FUNCTION
-
+    FUNCTION,
+    RETURN
 }

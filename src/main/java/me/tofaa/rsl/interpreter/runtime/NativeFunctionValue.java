@@ -1,9 +1,6 @@
 package me.tofaa.rsl.interpreter.runtime;
 
-import me.tofaa.rsl.environment.Environment;
 import me.tofaa.rsl.interpreter.RSLInterpreterValueTypes;
-
-import java.util.List;
 
 import static me.tofaa.rsl.interpreter.RSLInterpreterValueTypes.NATIVE_FUNCTION;
 
