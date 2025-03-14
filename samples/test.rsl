@@ -1,1 +1,2 @@
 print(math.cos(100))
+print(math.PI)
