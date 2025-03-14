@@ -1,1 +1,1 @@
-print(math.PI)
+print(math.cos(100))
