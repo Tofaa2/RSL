@@ -9,6 +9,11 @@ public record StringValue(String value) implements RuntimeValue {
     }
 
     @Override
+    public String toString() {
+        return value;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o instanceof String s) { // Might be a bad idea at some point but dont care.
             return s.equals(value);

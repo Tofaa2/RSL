@@ -1,15 +1,12 @@
 package me.tofaa.rsl.interpreter;
 
+import me.tofaa.rsl.Utils;
 import me.tofaa.rsl.ast.*;
 import me.tofaa.rsl.Environment;
 import me.tofaa.rsl.exception.RSLInterpretException;
 import me.tofaa.rsl.interpreter.runtime.*;
 
-import java.lang.reflect.Member;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static me.tofaa.rsl.interpreter.RSLInterpreter.eval;
 
@@ -21,11 +18,11 @@ final class EvalExpressions {
     static RuntimeValue evalIfStatement(IfStatement stmt, Environment env) {
         var condition = eval(stmt.condition(), env);
 
-        if (!(condition instanceof BooleanValue boolVal)) {
+        if (!(condition instanceof BooleanValue(Boolean b))) {
             throw new RSLInterpretException("If condition must evaluate to a boolean. Got: " + condition.type());
         }
 
-        if (boolVal.b()) {
+        if (b) {
             var result = executeBlock(stmt.body(), env);
             if (result != NullValue.INSTANCE) {
                 return result; // Return early if a return value was found
@@ -35,11 +32,11 @@ final class EvalExpressions {
         // Check elif blocks
         for (var elifStmt : stmt.elifBlocks()) {
             var elifCondition = eval(elifStmt.condition(), env);
-            if (!(elifCondition instanceof BooleanValue elifBool)) {
+            if (!(elifCondition instanceof BooleanValue(Boolean b1))) {
                 throw new RSLInterpretException("Elif condition must evaluate to a boolean. Got: " + elifCondition.type());
             }
 
-            if (elifBool.b()) {
+            if (b1) {
                 var result = executeBlock(elifStmt.body(), env);
                 if (result != NullValue.INSTANCE) {
                     return result;
@@ -80,6 +77,40 @@ final class EvalExpressions {
             args.add(eval(a, env));
         }
         var fn = eval(obj.caller(), env);
+
+        // Handle Java method calls
+        if (obj.caller() instanceof MemberExpression member) {
+            var target = eval(member.object(), env);
+            if (target instanceof JavaObjectValue javaObj) {
+                if (!(member.property() instanceof IdentifierExpression(String value))) {
+                    throw new RSLInterpretException("Invalid method/property access on Java object. Expected an identifier.");
+                }
+                return javaObj.callMethod(value, args);
+            }
+            else if (target instanceof JavaClassValue javaClass) {
+                if (!(member.property() instanceof IdentifierExpression(String value))) {
+                    throw new RSLInterpretException("Invalid method/property access on Java object. Expected an identifier.");
+                }
+                return javaClass.callMethod(value, args);
+            }
+            else {
+                System.out.println("Type " + target.toString());
+                throw new RSLInterpretException();
+            }
+//            if (target instanceof JavaObjectProxyValue javaObj) {
+//                if (!(member.property() instanceof IdentifierExpression(String value))) {
+//                    throw new RSLInterpretException("Invalid method/property access on Java object. Expected an identifier.");
+//                }
+//                return javaObj.callMethod(value, args);
+//            }
+//            if (target instanceof JavaClassProxyValue javaClass) {
+//                if (!(member.property() instanceof IdentifierExpression identifier)) {
+//                    throw new RSLInterpretException("Invalid static method access. Expected an identifier.");
+//                }
+//                return javaClass.callMethod(identifier.value(), args);
+//            }
+        }
+
         if (fn.type() == RSLInterpreterValueTypes.NATIVE_FUNCTION) {
             var func = (NativeFunctionValue)fn;
             var callable = func.call();
@@ -154,33 +185,54 @@ final class EvalExpressions {
 
     static RuntimeValue evalObjectField(MemberExpression expr, Environment env) {
         RuntimeValue objectRuntimeVal = eval(expr.object(), env);
-        if (!(objectRuntimeVal instanceof ObjectValue(java.util.Map<String, RuntimeValue> properties))) {
-            throw new RSLInterpretException("Attempted to access a field on a non-object: " + expr.object());
+
+        if (objectRuntimeVal instanceof ObjectValue obj) {
+            return evalObjectProperty(obj, expr, env);
         }
 
-        RuntimeValue propertyRuntimeVal;
-        if (expr.computed()) {
-            // If computed, evaluate the property expression dynamically
-            propertyRuntimeVal = eval(expr.property(), env);
+        // Handle instance fields on Java objects
+        if (objectRuntimeVal instanceof JavaObjectValue objProxy) {
+            RuntimeValue propertyRuntimeVal = getPropertyKey(expr, env);
+            return objProxy.getField(propertyRuntimeVal);
+        }
 
+        // Handle static fields on Java classes
+        if (objectRuntimeVal instanceof JavaClassValue classProxy) {
+            RuntimeValue propertyRuntimeVal = getPropertyKey(expr, env);
+            return classProxy.getField(propertyRuntimeVal);
+        }
+
+        // Handle accessing Java Enum values
+        if (objectRuntimeVal instanceof JavaEnumValue enumProxy) {
+            RuntimeValue propertyRuntimeVal = getPropertyKey(expr, env);
+        }
+
+        throw new RSLInterpretException("Attempted to access a field on a non-object/java proxied variable: " + expr.object());
+    }
+    private static RuntimeValue getPropertyKey(MemberExpression expr, Environment env) {
+        if (expr.computed()) {
+            RuntimeValue propertyRuntimeVal = eval(expr.property(), env);
             if (!(propertyRuntimeVal instanceof StringValue)) {
                 throw new RSLInterpretException("Computed property must evaluate to a string: " + expr.property());
             }
-        } else {
-            // If not computed, directly use the static property (should be a string literal)
-            if (!(expr.property() instanceof IdentifierExpression)) {
-                throw new RSLInterpretException("Non-computed property must be a string literal: " + expr.property());
-            }
-            propertyRuntimeVal = new StringValue(((IdentifierExpression) expr.property()).value());
+            return propertyRuntimeVal;
         }
 
-        String propertyName = ((StringValue) propertyRuntimeVal).value();
-        RuntimeValue propertyValue = properties.get(propertyName);
+        if (!(expr.property() instanceof IdentifierExpression(String value))) {
+            throw new RSLInterpretException("Non-computed property must be an identifier: " + expr.property());
+        }
 
+        return new StringValue(value);
+    }
+
+    private static RuntimeValue evalObjectProperty(ObjectValue obj, MemberExpression expr, Environment env) {
+        RuntimeValue propertyRuntimeVal = getPropertyKey(expr, env);
+        String propertyName = ((StringValue) propertyRuntimeVal).value();
+
+        RuntimeValue propertyValue = obj.properties().get(propertyName);
         if (propertyValue == null) {
             throw new RSLInterpretException("Property '" + propertyName + "' not found in object.");
         }
-
         return propertyValue;
     }
 
@@ -308,45 +360,8 @@ final class EvalExpressions {
                         left.value().doubleValue() >= right.value().doubleValue()
                 );
             }
-            case "+" -> {
-                if (left.value() instanceof Double || right.value() instanceof Double) {
-                    return new NumberValue(left.value().doubleValue() + right.value().doubleValue());
-                }
-                else {
-                    return new NumberValue(left.value().intValue() + right.value().intValue());
-                }
-            }
-            case "-" -> {
-                if (left.value() instanceof Double || right.value() instanceof Double) {
-                    return new NumberValue(left.value().doubleValue() - right.value().doubleValue());
-                }
-                else {
-                    return new NumberValue(left.value().intValue() - right.value().intValue());
-                }
-            }
-            case "*" -> {
-                if (left.value() instanceof Double || right.value() instanceof Double) {
-                    return new NumberValue(left.value().doubleValue() * right.value().doubleValue());
-                }
-                else {
-                    return new NumberValue(left.value().intValue() * right.value().intValue());
-                }
-            }
-            case "/" -> {
-                if (left.value() instanceof Double || right.value() instanceof Double) {
-                    return new NumberValue(left.value().doubleValue() / right.value().doubleValue());
-                }
-                else {
-                    return new NumberValue(left.value().intValue() / right.value().intValue());
-                }
-            }
-            case "%" -> {
-                if (left.value() instanceof Double || right.value() instanceof Double) {
-                    return new NumberValue(left.value().doubleValue() % right.value().doubleValue());
-                }
-                else {
-                    return new NumberValue(left.value().intValue() % right.value().intValue());
-                }
+            case "+", "-", "*", "/", "%" -> {
+                return new NumberValue(Utils.operateNumber(operator, left, right));
             }
         }
         throw new RSLInterpretException(

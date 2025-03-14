@@ -1,5 +1,7 @@
 package me.tofaa.rsl;
 
+import me.tofaa.rsl.interpreter.runtime.NumberValue;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,7 +13,120 @@ import java.util.Map;
 public final class Utils {
 
     private Utils() {
+    }
 
+
+    public static Number operateNumber(String operand, NumberValue l, NumberValue r) {
+        var lv = l.value();
+        var rv = l.value();
+        return switch (operand) {
+            case "+" -> {
+                if (lv instanceof Long) {
+                    yield lv.longValue() + rv.longValue();
+                }
+                else if (lv instanceof Integer) {
+                    yield lv.intValue() + rv.intValue();
+                }
+                else if (lv instanceof Short) {
+                    yield lv.shortValue() + rv.shortValue();
+                }
+                else if (lv instanceof Byte) {
+                    yield lv.byteValue() + rv.byteValue();
+                }
+                else if (lv instanceof Double) {
+                    yield lv.doubleValue() + rv.doubleValue();
+                }
+                else if (lv instanceof Float) {
+                    yield lv.floatValue() + rv.floatValue();
+                }
+                else yield lv.doubleValue() + rv.doubleValue();
+            }
+            case "-" -> {
+                if (lv instanceof Long) {
+                    yield lv.longValue() - rv.longValue();
+                }
+                else if (lv instanceof Integer) {
+                    yield lv.intValue() - rv.intValue();
+                }
+                else if (lv instanceof Short) {
+                    yield lv.shortValue() - rv.shortValue();
+                }
+                else if (lv instanceof Byte) {
+                    yield lv.byteValue() - rv.byteValue();
+                }
+                else if (lv instanceof Double) {
+                    yield lv.doubleValue() - rv.doubleValue();
+                }
+                else if (lv instanceof Float) {
+                    yield lv.floatValue() - rv.floatValue();
+                }
+                else yield lv.doubleValue() - rv.doubleValue();
+            }
+            case "*" -> {
+                if (lv instanceof Long) {
+                    yield lv.longValue() * rv.longValue();
+                }
+                else if (lv instanceof Integer) {
+                    yield lv.intValue() * rv.intValue();
+                }
+                else if (lv instanceof Short) {
+                    yield lv.shortValue() * rv.shortValue();
+                }
+                else if (lv instanceof Byte) {
+                    yield lv.byteValue() * rv.byteValue();
+                }
+                else if (lv instanceof Double) {
+                    yield lv.doubleValue() * rv.doubleValue();
+                }
+                else if (lv instanceof Float) {
+                    yield lv.floatValue() * rv.floatValue();
+                }
+                else yield lv.doubleValue() * rv.doubleValue();
+            }
+            case "/" -> {
+                if (lv instanceof Long) {
+                    yield lv.longValue() / rv.longValue();
+                }
+                else if (lv instanceof Integer) {
+                    yield lv.intValue() / rv.intValue();
+                }
+                else if (lv instanceof Short) {
+                    yield lv.shortValue() / rv.shortValue();
+                }
+                else if (lv instanceof Byte) {
+                    yield lv.byteValue() / rv.byteValue();
+                }
+                else if (lv instanceof Double) {
+                    yield lv.doubleValue() / rv.doubleValue();
+                }
+                else if (lv instanceof Float) {
+                    yield lv.floatValue() / rv.floatValue();
+                }
+                else yield lv.doubleValue() / rv.doubleValue();
+            }
+            case "%" -> {
+                if (lv instanceof Long) {
+                    yield lv.longValue() % rv.longValue();
+                }
+                else if (lv instanceof Integer) {
+                    yield lv.intValue() % rv.intValue();
+                }
+                else if (lv instanceof Short) {
+                    yield lv.shortValue() %  rv.shortValue();
+                }
+                else if (lv instanceof Byte) {
+                    yield lv.byteValue() % rv.byteValue();
+                }
+                else if (lv instanceof Double) {
+                    yield lv.doubleValue() % rv.doubleValue();
+                }
+                else if (lv instanceof Float) {
+                    yield lv.floatValue() % rv.floatValue();
+                }
+                else yield lv.doubleValue() % rv.doubleValue();
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + operand);
+        };
     }
 
     public static String readFileContent(Path path) {

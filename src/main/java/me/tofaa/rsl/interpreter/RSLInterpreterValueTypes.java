@@ -11,5 +11,8 @@ public enum RSLInterpreterValueTypes {
     STRING,
     FUNCTION,
     BREAK,
-    RETURN
+    RETURN,
+    JAVA_OBJECT,
+    JAVA_CLASS,
+    JAVA_ENUM
 }

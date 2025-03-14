@@ -1,6 +1,8 @@
 var x = 100;
-println(currentTimeMs(), x)
+RSL.println(RSL.timeMs(), x)
+
+RSL.println(RSL.toString(RSL.javaClass("java.lang.Math")))
 
 x = x - 100
-println("Hello World " * 10) # Repeats the string 10 times.
-println("Hello " + "World") # Joins two or more strings.
+RSL.println("Hello World " * 10) # Repeats the string 10 times.
+RSL.println("Hello " + "World") # Joins two or more strings.

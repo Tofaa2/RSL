@@ -1,7 +1,6 @@
 package me.tofaa.rsl;
 
 import me.tofaa.rsl.interpreter.RSLInterpreter;
-import me.tofaa.rsl.interpreter.runtime.NullValue;
 import me.tofaa.rsl.interpreter.runtime.ReturnValue;
 import me.tofaa.rsl.interpreter.runtime.RuntimeValue;
 import me.tofaa.rsl.parser.RSLParser;
@@ -24,16 +23,15 @@ public class RSLScript {
 
     public RuntimeValue eval(String source) {
         RSLParser parser = new RSLParser(source);
-        return RSLInterpreter.eval(parser.create(), globalScope);
+        var evaled = RSLInterpreter.eval(parser.create(), globalScope);
+        if (evaled instanceof ReturnValue(RuntimeValue value)) { // Unbox return value
+            return value;
+        }
+        return evaled;
     }
 
     public RuntimeValue eval(Path path) {
-        RSLParser parser = new RSLParser(Utils.readFileContent(path));
-        var evaled = RSLInterpreter.eval(parser.create(), globalScope);
-        if (evaled instanceof ReturnValue(RuntimeValue value)) { // Unbox return value
-             return value;
-        }
-        return evaled;
+        return eval(Utils.readFileContent(path));
     }
 
     public Environment globalScope() {

@@ -238,7 +238,7 @@ public class RSLParser {
                 computed = false;
                 property =  parsePrimaryExpr();
                 if (property.type() != AstNodeType.IDENTIFIER) {
-                    throw new RSLSyntaxTreeException("Cannot use . operator without being an identifier. Try using computed values syntax [v]");
+                    throw new RSLSyntaxTreeException("Cannot use . operator without being an identifier. Try using computed values syntax [v] instead of " + property.type() );
                 }
             }
             // Computed values ["val"] or [myFunc()] includes chaining.

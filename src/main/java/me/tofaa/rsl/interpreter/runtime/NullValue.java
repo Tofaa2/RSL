@@ -12,6 +12,11 @@ public record NullValue(String value) implements RuntimeValue {
     }
 
     @Override
+    public String toString() {
+        return "null";
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null) return true;
         return o instanceof NullValue;

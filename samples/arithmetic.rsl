@@ -1,3 +1,10 @@
-println("Hello World")
+var foo = {
+    bar: 100,
+    bazz: 100
+};
+
+return foo.bar
+
+RSL.println("Hello World")
 
 return 10
