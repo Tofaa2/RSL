@@ -8,18 +8,18 @@ import java.util.List;
 public record JavaObjectValue(Object value) implements JavaProxiedRuntimeValue {
 
     public RuntimeValue callMethod(String name, List<RuntimeValue> args) {
-        var list = wrapInterpretedArray(args).toArray(new Object[0]);
-        return wrapPrimary(ReflectionUtils.callMemberMethod(value.getClass(), name, value, list));
+        var list = JavaProxiedRuntimeValue.wrapInterpretedArray(args).toArray(new Object[0]);
+        return JavaProxiedRuntimeValue.wrapPrimary(ReflectionUtils.callMemberMethod(value.getClass(), name, value, list));
     }
 
     public void setField(RuntimeValue name, RuntimeValue value) {
         String s = name.asString().value();
-        ReflectionUtils.setMemberField(value.getClass(), s, value, wrapInterpreted(value));
+        ReflectionUtils.setMemberField(value.getClass(), s, value, JavaProxiedRuntimeValue.wrapInterpreted(value));
     }
 
     public RuntimeValue getField(RuntimeValue name) {
         String s = name.asString().value();
-        return wrapPrimary(ReflectionUtils.getMemberField(value.getClass(), s, value));
+        return JavaProxiedRuntimeValue.wrapPrimary(ReflectionUtils.getMemberField(value.getClass(), s, value));
     }
 
 

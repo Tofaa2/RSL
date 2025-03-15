@@ -12,37 +12,6 @@ public final class GlobalNativeFunctions {
 
     private GlobalNativeFunctions() {}
 
-    public static ObjectValue RSL_CONSTANT = makeObj(Map.ofEntries(
-            entry("println", makeNativeFn((env, args) -> {
-                args.forEach(arg -> System.out.println(arg.toString())); return NullValue.INSTANCE;
-            })),
-            entry("javaClass", makeNativeFn((env, args) -> {
-                if (args.size() != 1 && !(args.getFirst() instanceof StringValue)) {
-                    throw new RSLInterpretException("Expected a string argument for class path in javaClass call");
-                }
-                String s = args.getFirst().asString().value();
-                try {
-                    var clazz = Class.forName(s);
-                    return new JavaClassValue(clazz);
-                } catch (ClassNotFoundException e) {
-                    throw new RSLInterpretException(e);
-                }
-            })),
-            entry("toString", makeNativeFn((env, args) -> {
-                if (args.size() != 1) {
-                    return NullValue.INSTANCE;
-                }
-                return new StringValue(args.getFirst().toString());
-            })),
-            entry("typeOf", makeNativeFn((env, args) -> {
-                if (args.size() != 1) {
-                    return NullValue.INSTANCE;
-                }
-                return new StringValue(args.getFirst().getClass().getSimpleName());
-            })),
-            entry("timeNs", makeNativeFn((env, args) -> new NumberValue(System.nanoTime()))),
-            entry("timeMs", makeNativeFn((env, args) -> new NumberValue(System.currentTimeMillis())))
-    ));
 
     public static void register(
             Environment env
@@ -57,7 +26,45 @@ public final class GlobalNativeFunctions {
                     args.forEach(arg -> System.out.println(arg.toString())); return NullValue.INSTANCE;
                 }), true);
         env.declare("math", new JavaClassValue(Math.class), true);
-        //env.declare("RSL", RSL_CONSTANT, true);
+        env.declare("toString", makeNativeFn((env1, args) -> {
+            if (args.size() != 1) {
+                return NullValue.INSTANCE;
+            }
+            return new StringValue(args.getFirst().toString());
+        }), true);
+        env.declare("javaClass", makeNativeFn((env1, args) -> {
+            if (args.size() != 1 && !(args.getFirst() instanceof StringValue)) {
+                throw new RSLInterpretException("Expected a string argument for class path in javaClass call");
+            }
+            String s = args.getFirst().asString().value();
+            try {
+                var clazz = Class.forName(s);
+                return new JavaClassValue(clazz);
+            } catch (ClassNotFoundException e) {
+                throw new RSLInterpretException(e);
+            }
+        }), true);
+        env.declare("javaObject", makeNativeFn((env1, args) -> {
+            if (args.isEmpty()) {
+                throw new RSLInterpretException("Expected a class or string + constructor arguments, got nothing.");
+            }
+            Object o = null;
+            if (args.getFirst() instanceof JavaClassValue jc) {
+                o = ReflectionUtils.newInstance(jc.clazz(), JavaProxiedRuntimeValue.wrapInterpretedArray(
+                        args.subList(1, args.size())
+                ).toArray());
+            }
+            else if (args.getFirst() instanceof StringValue s) {
+                Class<?> clazz = ReflectionUtils.getClass(s.value());
+                o = ReflectionUtils.newInstance(clazz, JavaProxiedRuntimeValue.wrapInterpretedArray(
+                        args.subList(1, args.size())
+                ).toArray());
+            }
+            if (o == null) {
+                throw new RSLInterpretException("Failed to create or find a constructor for the class " + args.getFirst().toString());
+            }
+            return new JavaObjectValue(o);
+        }), true);
     }
 
     public static NativeFunctionValue makeNativeFn(RSLFunction func) {

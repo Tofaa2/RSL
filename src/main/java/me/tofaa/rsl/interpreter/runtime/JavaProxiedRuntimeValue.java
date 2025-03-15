@@ -6,15 +6,15 @@ import java.util.List;
 
 public interface JavaProxiedRuntimeValue extends RuntimeValue {
 
-    default List<RuntimeValue> wrapPrimaryArray(List<Object> objs) {
-        return objs.stream().map(this::wrapPrimary).toList();
+    static List<RuntimeValue> wrapPrimaryArray(List<Object> objs) {
+        return objs.stream().map(JavaProxiedRuntimeValue::wrapPrimary).toList();
     }
 
-    default List<Object> wrapInterpretedArray(List<RuntimeValue> values) {
-        return values.stream().map(this::wrapInterpreted).toList();
+    public static List<Object> wrapInterpretedArray(List<RuntimeValue> values) {
+        return values.stream().map(JavaProxiedRuntimeValue::wrapInterpreted).toList();
     }
 
-    default RuntimeValue wrapPrimary(Object o) {
+    static  RuntimeValue wrapPrimary(Object o) {
         return switch (o) {
             case Number n -> new NumberValue(n);
             case String s -> new StringValue(s);
@@ -24,7 +24,7 @@ public interface JavaProxiedRuntimeValue extends RuntimeValue {
         };
     }
 
-    default Object wrapInterpreted(RuntimeValue v) {
+    static Object wrapInterpreted(RuntimeValue v) {
         if (v instanceof StringValue(String value) ) {
             return value;
         }
@@ -42,7 +42,7 @@ public interface JavaProxiedRuntimeValue extends RuntimeValue {
         throw new RSLInterpretException("Could not find suitable java representation for value " + v.toString());
     }
 
-    default boolean isCompatibleType(Class<?> paramType, Class<?> argType) {
+    static boolean isCompatibleType(Class<?> paramType, Class<?> argType) {
         if (paramType.isAssignableFrom(argType)) return true;
 
         // Handle primitive and wrapper class compatibility
@@ -55,15 +55,6 @@ public interface JavaProxiedRuntimeValue extends RuntimeValue {
                 (paramType == byte.class && argType == Byte.class) ||
                 (paramType == short.class && argType == Short.class);
     }
-
-    default String idFromVal(RuntimeValue v) {
-        if (v instanceof StringValue(String value)) {
-            return value;
-        }
-        throw new RSLInterpretException("Attempted to use value of type %s as a String".formatted(v.type()));
-    }
-
-
 
 }
 

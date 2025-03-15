@@ -18,112 +18,117 @@ public final class Utils {
 
     public static Number operateNumber(String operand, NumberValue l, NumberValue r) {
         var lv = l.value();
-        var rv = l.value();
+        var rv = r.value();
         return switch (operand) {
             case "+" -> {
-                if (lv instanceof Long) {
-                    yield lv.longValue() + rv.longValue();
+                switch (lv) {
+                    case Long aLong -> {
+                        yield lv.longValue() + rv.longValue();
+                    }
+                    case Integer i -> {
+                        yield lv.intValue() + rv.intValue();
+                    }
+                    case Short i -> {
+                        yield lv.shortValue() + rv.shortValue();
+                    }
+                    case Byte b -> {
+                        yield lv.byteValue() + rv.byteValue();
+                    }
+                    case Float v -> {
+                        yield lv.floatValue() + rv.floatValue();
+                    }
+                    case null, default -> {
+                        yield lv.doubleValue() + rv.doubleValue();
+                    }
                 }
-                else if (lv instanceof Integer) {
-                    yield lv.intValue() + rv.intValue();
-                }
-                else if (lv instanceof Short) {
-                    yield lv.shortValue() + rv.shortValue();
-                }
-                else if (lv instanceof Byte) {
-                    yield lv.byteValue() + rv.byteValue();
-                }
-                else if (lv instanceof Double) {
-                    yield lv.doubleValue() + rv.doubleValue();
-                }
-                else if (lv instanceof Float) {
-                    yield lv.floatValue() + rv.floatValue();
-                }
-                else yield lv.doubleValue() + rv.doubleValue();
             }
             case "-" -> {
-                if (lv instanceof Long) {
-                    yield lv.longValue() - rv.longValue();
+                switch (lv) {
+                    case Long aLong -> {
+                        yield lv.longValue() - rv.longValue();
+                    }
+                    case Integer i -> {
+                        yield lv.intValue() - rv.intValue();
+                    }
+                    case Short i -> {
+                        yield lv.shortValue() - rv.shortValue();
+                    }
+                    case Byte b -> {
+                        yield lv.byteValue() - rv.byteValue();
+                    }
+                    case Float v -> {
+                        yield lv.floatValue() - rv.floatValue();
+                    }
+                    case null, default -> {
+                        yield lv.doubleValue() - rv.doubleValue();
+                    }
                 }
-                else if (lv instanceof Integer) {
-                    yield lv.intValue() - rv.intValue();
-                }
-                else if (lv instanceof Short) {
-                    yield lv.shortValue() - rv.shortValue();
-                }
-                else if (lv instanceof Byte) {
-                    yield lv.byteValue() - rv.byteValue();
-                }
-                else if (lv instanceof Double) {
-                    yield lv.doubleValue() - rv.doubleValue();
-                }
-                else if (lv instanceof Float) {
-                    yield lv.floatValue() - rv.floatValue();
-                }
-                else yield lv.doubleValue() - rv.doubleValue();
             }
             case "*" -> {
-                if (lv instanceof Long) {
-                    yield lv.longValue() * rv.longValue();
+                switch (lv) {
+                    case Long aLong -> {
+                        yield lv.longValue() * rv.longValue();
+                    }
+                    case Integer i -> {
+                        yield lv.intValue() * rv.intValue();
+                    }
+                    case Short i -> {
+                        yield lv.shortValue() * rv.shortValue();
+                    }
+                    case Byte b -> {
+                        yield lv.byteValue() * rv.byteValue();
+                    }
+                    case Float v -> {
+                        yield lv.floatValue() * rv.floatValue();
+                    }
+                    case null, default -> {
+                        yield lv.doubleValue() * rv.doubleValue();
+                    }
                 }
-                else if (lv instanceof Integer) {
-                    yield lv.intValue() * rv.intValue();
-                }
-                else if (lv instanceof Short) {
-                    yield lv.shortValue() * rv.shortValue();
-                }
-                else if (lv instanceof Byte) {
-                    yield lv.byteValue() * rv.byteValue();
-                }
-                else if (lv instanceof Double) {
-                    yield lv.doubleValue() * rv.doubleValue();
-                }
-                else if (lv instanceof Float) {
-                    yield lv.floatValue() * rv.floatValue();
-                }
-                else yield lv.doubleValue() * rv.doubleValue();
             }
             case "/" -> {
-                if (lv instanceof Long) {
-                    yield lv.longValue() / rv.longValue();
+                switch (lv) {
+                    case Long aLong -> {
+                        yield lv.longValue() / rv.longValue();
+                    }
+                    case Integer i -> {
+                        yield lv.intValue() / rv.intValue();
+                    }
+                    case Short i -> {
+                        yield lv.shortValue() / rv.shortValue();
+                    }
+                    case Byte b -> {
+                        yield lv.byteValue() / rv.byteValue();
+                    }
+                    case Float v -> {
+                        yield lv.floatValue() / rv.floatValue();
+                    }
+                    case null, default -> {
+                        yield lv.doubleValue() / rv.doubleValue();
+                    }
                 }
-                else if (lv instanceof Integer) {
-                    yield lv.intValue() / rv.intValue();
-                }
-                else if (lv instanceof Short) {
-                    yield lv.shortValue() / rv.shortValue();
-                }
-                else if (lv instanceof Byte) {
-                    yield lv.byteValue() / rv.byteValue();
-                }
-                else if (lv instanceof Double) {
-                    yield lv.doubleValue() / rv.doubleValue();
-                }
-                else if (lv instanceof Float) {
-                    yield lv.floatValue() / rv.floatValue();
-                }
-                else yield lv.doubleValue() / rv.doubleValue();
             }
             case "%" -> {
-                if (lv instanceof Long) {
-                    yield lv.longValue() % rv.longValue();
+                switch (lv) {
+                    case Long aLong -> {
+                        yield lv.longValue() % rv.longValue();
+                    }
+                    case Integer i -> {
+                        yield lv.intValue() % rv.intValue();
+                    }
+                    case Short i -> {
+                        yield lv.shortValue() % rv.shortValue();
+                    }
+                    case Byte b -> {
+                        yield lv.byteValue() % rv.byteValue();
+                    }
+                    case Float v -> {
+                        yield lv.floatValue() % rv.floatValue();
+                    }
+                    case null, default -> {
+                        yield lv.doubleValue() % rv.doubleValue();
+                    }
                 }
-                else if (lv instanceof Integer) {
-                    yield lv.intValue() % rv.intValue();
-                }
-                else if (lv instanceof Short) {
-                    yield lv.shortValue() %  rv.shortValue();
-                }
-                else if (lv instanceof Byte) {
-                    yield lv.byteValue() % rv.byteValue();
-                }
-                else if (lv instanceof Double) {
-                    yield lv.doubleValue() % rv.doubleValue();
-                }
-                else if (lv instanceof Float) {
-                    yield lv.floatValue() % rv.floatValue();
-                }
-                else yield lv.doubleValue() % rv.doubleValue();
             }
             default -> throw new IllegalStateException("Unexpected value: " + operand);
         };

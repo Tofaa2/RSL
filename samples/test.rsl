@@ -1,2 +1,10 @@
+const System = javaClass("java.lang.System");
+const Utils = javaClass("me.tofaa.rsl.Utils");
+
+System.out.println("Hello World")
+
 print(math.cos(100))
 print(math.PI)
+print("Now: " + System.currentTimeMillis())
+
+print("Numeric String: " + toString(Utils.isNumeric("10000")))

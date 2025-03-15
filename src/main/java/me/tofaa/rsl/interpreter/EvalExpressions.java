@@ -14,7 +14,6 @@ final class EvalExpressions {
 
     private EvalExpressions() {}
 
-
     static RuntimeValue evalIfStatement(IfStatement stmt, Environment env) {
         var condition = eval(stmt.condition(), env);
 
@@ -25,7 +24,7 @@ final class EvalExpressions {
         if (b) {
             var result = executeBlock(stmt.body(), env);
             if (result != NullValue.INSTANCE) {
-                return result; // Return early if a return value was found
+                return result; // Return early if a return value is found
             }
         }
 
@@ -71,106 +70,61 @@ final class EvalExpressions {
         return new ReturnValue(result);
     }
 
-    static RuntimeValue evalCallExpr(CallExpression obj, Environment env) {
-        var args = new ArrayList<RuntimeValue>();
-        for (var a : obj.args()) {
-            args.add(eval(a, env));
-        }
-        var fn = eval(obj.caller(), env);
+static RuntimeValue evalCallExpr(CallExpression callExpr, Environment env) {
+    var args = new ArrayList<RuntimeValue>();
+    for (var a : callExpr.args()) {
+        args.add(eval(a, env));
+    }
 
-        // Handle Java method calls
-        if (obj.caller() instanceof MemberExpression member) {
-            var target = eval(member.object(), env);
-            if (target instanceof JavaObjectValue javaObj) {
-                if (!(member.property() instanceof IdentifierExpression(String value))) {
-                    throw new RSLInterpretException("Invalid method/property access on Java object. Expected an identifier.");
-                }
-                return javaObj.callMethod(value, args);
-            }
-            else if (target instanceof JavaClassValue javaClass) {
-                if (!(member.property() instanceof IdentifierExpression(String value))) {
-                    throw new RSLInterpretException("Invalid method/property access on Java object. Expected an identifier.");
-                }
-                return javaClass.callMethod(value, args);
-            }
-            else {
-                System.out.println("Type " + target.toString());
-                throw new RSLInterpretException();
-            }
-//            if (target instanceof JavaObjectProxyValue javaObj) {
-//                if (!(member.property() instanceof IdentifierExpression(String value))) {
-//                    throw new RSLInterpretException("Invalid method/property access on Java object. Expected an identifier.");
-//                }
-//                return javaObj.callMethod(value, args);
-//            }
-//            if (target instanceof JavaClassProxyValue javaClass) {
-//                if (!(member.property() instanceof IdentifierExpression identifier)) {
-//                    throw new RSLInterpretException("Invalid static method access. Expected an identifier.");
-//                }
-//                return javaClass.callMethod(identifier.value(), args);
-//            }
+    if (callExpr.caller() instanceof MemberExpression member) {
+        // Evaluate only the object part and extract the property (method name)
+        RuntimeValue target = eval(member.object(), env);
+        if (!(member.property() instanceof IdentifierExpression(String methodName))) {
+            throw new RSLInterpretException("Invalid method/property access on Java value. Expected an identifier.");
         }
-
-        if (fn.type() == RSLInterpreterValueTypes.NATIVE_FUNCTION) {
-            var func = (NativeFunctionValue)fn;
-            var callable = func.call();
-            return callable.call(env, args);
-        }
-        else if (fn.type() == RSLInterpreterValueTypes.FUNCTION) {
-            var function = ((FunctionValue) fn);
-            var scope = new Environment(function.parentScope());
-
-            // Bind function parameters.
-            for (int i = 0; i < function.params().size(); i++) {
-                var name = function.params().get(i);
-                if (i >= args.size()) {
-                    throw new RSLInterpretException(
-                            "Passed invalid amount of arguments into a function. Expected %s received %s".formatted(
-                                    function.params().size(), args.size()
-                            )
-                    );
-                }
-                var argument = args.get(i);
-                scope.declare(name, argument, false);
-            }
-
-            // Execute the function body and return as soon as a ReturnValue is encountered.
-            for (var stmt : function.body()) {
-                var res = eval(stmt, scope);
-                if (res instanceof ReturnValue) {
-                    // Unwrap the ReturnValue before returning from the function.
-                    return ((ReturnValue) res).value();
-                }
-            }
-            return NullValue.INSTANCE;
-//            var function = ((FunctionValue)fn);
-//            var scope = new Environment(function.parentScope());
-//            for (int i = 0; i < function.params().size(); i++) {
-//                var name = function.params().get(i);
-//                if (i >= args.size()) {
-//                    throw new RSLInterpretException(
-//                            "Passed invalid amount of arguments into a function. Expected %s received %s".formatted(
-//                                    String.valueOf(function.params().size()),
-//                                    String.valueOf(args.size())
-//                            )
-//                    );
-//                }
-//                var argument = args.get(i);
-//                scope.declare(name, argument, false); // Mutable fun!
-//            }
-//            RuntimeValue result = NullValue.INSTANCE;
-//            for (var stmt : function.body()) {
-//                var res = eval(stmt, scope);
-//                if (stmt instanceof ReturnStatement) {
-//                    result = res;
-//                }
-//            }
-//            return result;
-        }
-        else {
-            throw new RSLInterpretException("Attempted to call a non function value. Called: %s".formatted(fn));
+        // Use the callMethod from your Java*Value implementations
+        if (target instanceof JavaObjectValue javaObj) {
+            return javaObj.callMethod(methodName, args);
+        } else if (target instanceof JavaClassValue javaClass) {
+            return javaClass.callMethod(methodName, args);
+        } else if (target instanceof JavaEnumValue javaEnum) {
+            return javaEnum.callMethod(methodName, args);
+        } else {
+            throw new RSLInterpretException("Unsupported target type for method call: " + target.type());
         }
     }
+
+    // Otherwise, evaluate normally (for RSL functions, etc.)
+    RuntimeValue fn = eval(callExpr.caller(), env);
+    if (fn.type() == RSLInterpreterValueTypes.NATIVE_FUNCTION) {
+        var func = (NativeFunctionValue) fn;
+        var callable = func.call();
+        return callable.call(env, args);
+    } else if (fn.type() == RSLInterpreterValueTypes.FUNCTION) {
+        var function = ((FunctionValue) fn);
+        var scope = new Environment(function.parentScope());
+        for (int i = 0; i < function.params().size(); i++) {
+            var name = function.params().get(i);
+            if (i >= args.size()) {
+                throw new RSLInterpretException(
+                        "Passed invalid amount of arguments into a function. Expected %s received %s"
+                                .formatted(function.params().size(), args.size())
+                );
+            }
+            scope.declare(name, args.get(i), false);
+        }
+        for (var stmt : function.body()) {
+            var res = eval(stmt, scope);
+            if (res instanceof ReturnValue) {
+                return ((ReturnValue) res).value();
+            }
+        }
+        return NullValue.INSTANCE;
+    }
+
+    throw new RSLInterpretException("Attempted to call a non-function value. Called: %s".formatted(fn));
+}
+
 
     static RuntimeValue evalObject(ObjectLiteralExpression obj, Environment env) {
         var object = new ObjectValue(new HashMap<>());
@@ -185,7 +139,6 @@ final class EvalExpressions {
 
     static RuntimeValue evalObjectField(MemberExpression expr, Environment env) {
         RuntimeValue objectRuntimeVal = eval(expr.object(), env);
-
         if (objectRuntimeVal instanceof ObjectValue obj) {
             return evalObjectProperty(obj, expr, env);
         }
@@ -205,10 +158,15 @@ final class EvalExpressions {
         // Handle accessing Java Enum values
         if (objectRuntimeVal instanceof JavaEnumValue enumProxy) {
             RuntimeValue propertyRuntimeVal = getPropertyKey(expr, env);
+            if (!(propertyRuntimeVal instanceof StringValue stringValue)) {
+                throw new RSLInterpretException("Enum property access must evaluate to a string: " + expr.property());
+            }
+            return enumProxy.getMember(stringValue);
         }
 
         throw new RSLInterpretException("Attempted to access a field on a non-object/java proxied variable: " + expr.object());
     }
+
     private static RuntimeValue getPropertyKey(MemberExpression expr, Environment env) {
         if (expr.computed()) {
             RuntimeValue propertyRuntimeVal = eval(expr.property(), env);
@@ -238,7 +196,7 @@ final class EvalExpressions {
 
     static RuntimeValue evalAssignment(AssignmentExpression expr, Environment env) {
         if (expr.assigned().type() == AstNodeType.IDENTIFIER) {
-            var name = ((IdentifierExpression)expr.assigned()).value();
+            var name = ((IdentifierExpression) expr.assigned()).value();
             return env.assign(name, eval(expr.value(), env));
         }
         if (expr.assigned() instanceof MemberExpression memberExpr) {
@@ -280,7 +238,6 @@ final class EvalExpressions {
         return newValue;
     }
 
-
     static RuntimeValue evalIdentifier(IdentifierExpression id, Environment env) {
         return env.lookup(id.value());
     }
@@ -308,9 +265,9 @@ final class EvalExpressions {
         else if (left.type() == RSLInterpreterValueTypes.STRING
                 && right.type() == RSLInterpreterValueTypes.NUMBER || right.type() == RSLInterpreterValueTypes.STRING
         ) {
-            return evalStringExpr((StringValue)left, right, binop.operator());
+            return evalStringExpr((StringValue) left, right, binop.operator());
         }
-        return  NullValue.INSTANCE;
+        return NullValue.INSTANCE;
     }
 
     static RuntimeValue evalStringExpr(StringValue s1, RuntimeValue s2, String operator) {
@@ -322,18 +279,20 @@ final class EvalExpressions {
                 if (s2 instanceof NumberValue(Number value)) {
                     return new StringValue(s1.value() + value);
                 }
-                throw new RSLInterpretException("Invalid string operation. Strings only support multiply (str * 4) or addition (str + other str).");
+                else if (s2 instanceof BooleanValue(Boolean b)) {
+                    return new StringValue(s1.value() + b);
+                }
+                else {
+                    return new StringValue(s1.value() + "null");
+                }
             }
-        }
-        else if (Objects.equals(operator, "*")) {
+        } else if (Objects.equals(operator, "*")) {
             if (s2 instanceof NumberValue(Number value)) {
                 return new StringValue(s1.value().repeat(value.intValue()));
-            }
-            else {
+            } else {
                 throw new RSLInterpretException("Invalid string operation. Strings only support multiply (str * 4) or addition (str + other str).");
             }
-        }
-        else {
+        } else {
             throw new RSLInterpretException("Invalid string operation. Strings only support multiply (str * 4) or addition (str + other str).");
         }
     }
@@ -341,33 +300,23 @@ final class EvalExpressions {
     static RuntimeValue evalNumericExpr(NumberValue left, NumberValue right, String operator) {
         switch (operator) {
             case "<" -> {
-                return new BooleanValue(
-                        left.value().doubleValue() < right.value().doubleValue()
-                );
+                return new BooleanValue(left.value().doubleValue() < right.value().doubleValue());
             }
             case "<=" -> {
-                return new BooleanValue(
-                        left.value().doubleValue() <= right.value().doubleValue()
-                );
+                return new BooleanValue(left.value().doubleValue() <= right.value().doubleValue());
             }
             case ">" -> {
-                return new BooleanValue(
-                        left.value().doubleValue() > right.value().doubleValue()
-                );
+                return new BooleanValue(left.value().doubleValue() > right.value().doubleValue());
             }
             case ">=" -> {
-                return new BooleanValue(
-                        left.value().doubleValue() >= right.value().doubleValue()
-                );
+                return new BooleanValue(left.value().doubleValue() >= right.value().doubleValue());
             }
             case "+", "-", "*", "/", "%" -> {
                 return new NumberValue(Utils.operateNumber(operator, left, right));
             }
         }
-        throw new RSLInterpretException(
-                "Invalid numeric operation. Received %s %s %s".formatted(
-                        left.toString(), operator, right.toString()
-                ));
+        throw new RSLInterpretException("Invalid numeric operation. Received %s %s %s".formatted(
+                left.toString(), operator, right.toString()
+        ));
     }
-
 }
