@@ -4,7 +4,7 @@ RSL is a dynamically typed interpreted programming language made in Java. Althou
 If you like this and or wish to sponsor me, visit my [ko-fi page](https://ko-fi.com/tofaa) :D 
 
 ## TODO:
- - Implement proper java enum support
+ - Fix member variable reassignment
  - Interpreter optimizations
  - Better error logging.
 
