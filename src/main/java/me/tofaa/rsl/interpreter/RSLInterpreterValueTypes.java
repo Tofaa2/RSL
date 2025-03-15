@@ -14,5 +14,4 @@ public enum RSLInterpreterValueTypes {
     RETURN,
     JAVA_OBJECT,
     JAVA_CLASS,
-    JAVA_ENUM
 }

@@ -5,16 +5,21 @@ import me.tofaa.rsl.interpreter.runtime.NumberValue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public final class Utils {
 
     private Utils() {
     }
 
+
+    public static double PI = Math.PI;
+
+    public static <T> String joinToStr(Collection<T> coll, Function<T, String> toStr) {
+        return coll.stream().map(toStr).collect(Collectors.joining(", "));
+    }
 
     public static Number operateNumber(String operand, NumberValue l, NumberValue r) {
         var lv = l.value();

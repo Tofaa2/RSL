@@ -1,10 +1,20 @@
-const System = javaClass("java.lang.System");
+#const System = javaClass("java.lang.System");
 const Utils = javaClass("me.tofaa.rsl.Utils");
+const Operation = javaClass("me.tofaa.rsl.Operation");
 
-System.out.println("Hello World")
+Utils.PI = 100
+print("PI: " + Utils.PI)
 
-print(math.cos(100))
-print(math.PI)
-print("Now: " + System.currentTimeMillis())
+const a = Operation.PLUS;
+a.a = 100
+print(a.a)
 
-print("Numeric String: " + toString(Utils.isNumeric("10000")))
+#print(toString(Operation.PLUS.perform(100, 100)))
+
+#System.out.println("Hello World")
+
+#print(math.cos(100))
+#print(math.PI)
+#print("Now: " + System.currentTimeMillis())
+
+#print("Numeric String: " + toString(Utils.isNumeric("10000")))

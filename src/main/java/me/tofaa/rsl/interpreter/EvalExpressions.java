@@ -70,60 +70,109 @@ final class EvalExpressions {
         return new ReturnValue(result);
     }
 
-static RuntimeValue evalCallExpr(CallExpression callExpr, Environment env) {
-    var args = new ArrayList<RuntimeValue>();
-    for (var a : callExpr.args()) {
-        args.add(eval(a, env));
-    }
-
-    if (callExpr.caller() instanceof MemberExpression member) {
-        // Evaluate only the object part and extract the property (method name)
-        RuntimeValue target = eval(member.object(), env);
-        if (!(member.property() instanceof IdentifierExpression(String methodName))) {
-            throw new RSLInterpretException("Invalid method/property access on Java value. Expected an identifier.");
+    static RuntimeValue evalCallExpr(CallExpression callExpr, Environment env) {
+        var args = new ArrayList<RuntimeValue>();
+        for (var a : callExpr.args()) {
+            args.add(eval(a, env));
         }
-        // Use the callMethod from your Java*Value implementations
-        if (target instanceof JavaObjectValue javaObj) {
-            return javaObj.callMethod(methodName, args);
-        } else if (target instanceof JavaClassValue javaClass) {
-            return javaClass.callMethod(methodName, args);
-        } else if (target instanceof JavaEnumValue javaEnum) {
-            return javaEnum.callMethod(methodName, args);
-        } else {
-            throw new RSLInterpretException("Unsupported target type for method call: " + target.type());
-        }
-    }
 
-    // Otherwise, evaluate normally (for RSL functions, etc.)
-    RuntimeValue fn = eval(callExpr.caller(), env);
-    if (fn.type() == RSLInterpreterValueTypes.NATIVE_FUNCTION) {
-        var func = (NativeFunctionValue) fn;
-        var callable = func.call();
-        return callable.call(env, args);
-    } else if (fn.type() == RSLInterpreterValueTypes.FUNCTION) {
-        var function = ((FunctionValue) fn);
-        var scope = new Environment(function.parentScope());
-        for (int i = 0; i < function.params().size(); i++) {
-            var name = function.params().get(i);
-            if (i >= args.size()) {
-                throw new RSLInterpretException(
-                        "Passed invalid amount of arguments into a function. Expected %s received %s"
-                                .formatted(function.params().size(), args.size())
-                );
+        if (callExpr.caller() instanceof MemberExpression member) {
+            RuntimeValue target = eval(member.object(), env);
+            if (!(member.property() instanceof IdentifierExpression(String methodName))) {
+                throw new RSLInterpretException("Invalid method/property access. Expected an identifier.");
             }
-            scope.declare(name, args.get(i), false);
-        }
-        for (var stmt : function.body()) {
-            var res = eval(stmt, scope);
-            if (res instanceof ReturnValue) {
-                return ((ReturnValue) res).value();
+
+            if (target instanceof JavaObjectValue javaObj) {
+                return javaObj.callMethod(methodName, args);
+            } else if (target instanceof JavaClassValue javaClass) {
+                return javaClass.callMethod(methodName, args);
+            }
+            else {
+                throw new RSLInterpretException("Unsupported target type for method call: " + target.type());
             }
         }
-        return NullValue.INSTANCE;
+
+        // Handle normal function calls
+        RuntimeValue fn = eval(callExpr.caller(), env);
+        if (fn instanceof NativeFunctionValue(RSLFunction call)) {
+            return call.call(env, args);
+        } else if (fn instanceof FunctionValue function) {
+            var scope = new Environment(function.parentScope());
+            for (int i = 0; i < function.params().size(); i++) {
+                if (i >= args.size()) {
+                    throw new RSLInterpretException(
+                            "Invalid number of arguments. Expected %d, received %d"
+                                    .formatted(function.params().size(), args.size())
+                    );
+                }
+                scope.declare(function.params().get(i), args.get(i), false);
+            }
+            for (var stmt : function.body()) {
+                var res = eval(stmt, scope);
+                if (res instanceof ReturnValue returnValue) {
+                    return returnValue.value();
+                }
+            }
+            return NullValue.INSTANCE;
+        }
+
+        throw new RSLInterpretException("Attempted to call a non-function value: " + fn);
     }
 
-    throw new RSLInterpretException("Attempted to call a non-function value. Called: %s".formatted(fn));
-}
+//static RuntimeValue evalCallExpr(CallExpression callExpr, Environment env) {
+//    var args = new ArrayList<RuntimeValue>();
+//    for (var a : callExpr.args()) {
+//        args.add(eval(a, env));
+//    }
+//
+//    if (callExpr.caller() instanceof MemberExpression member) {
+//        // Evaluate only the object part and extract the property (method name)
+//        RuntimeValue target = eval(member.object(), env);
+//        if (!(member.property() instanceof IdentifierExpression(String methodName))) {
+//            throw new RSLInterpretException("Invalid method/property access on Java value. Expected an identifier.");
+//        }
+//        // Use the callMethod from your Java*Value implementations
+//        if (target instanceof JavaObjectValue javaObj) {
+//            return javaObj.callMethod(methodName, args);
+//        } else if (target instanceof JavaClassValue javaClass) {
+//            return javaClass.callMethod(methodName, args);
+//        } else if (target instanceof JavaEnumValue javaEnum) {
+//            return javaEnum.callMethod(methodName, args);
+//        } else {
+//            throw new RSLInterpretException("Unsupported target type for method call: " + target.type());
+//        }
+//    }
+//
+//    // Otherwise, evaluate normally (for RSL functions, etc.)
+//    RuntimeValue fn = eval(callExpr.caller(), env);
+//    if (fn.type() == RSLInterpreterValueTypes.NATIVE_FUNCTION) {
+//        var func = (NativeFunctionValue) fn;
+//        var callable = func.call();
+//        return callable.call(env, args);
+//    } else if (fn.type() == RSLInterpreterValueTypes.FUNCTION) {
+//        var function = ((FunctionValue) fn);
+//        var scope = new Environment(function.parentScope());
+//        for (int i = 0; i < function.params().size(); i++) {
+//            var name = function.params().get(i);
+//            if (i >= args.size()) {
+//                throw new RSLInterpretException(
+//                        "Passed invalid amount of arguments into a function. Expected %s received %s"
+//                                .formatted(function.params().size(), args.size())
+//                );
+//            }
+//            scope.declare(name, args.get(i), false);
+//        }
+//        for (var stmt : function.body()) {
+//            var res = eval(stmt, scope);
+//            if (res instanceof ReturnValue) {
+//                return ((ReturnValue) res).value();
+//            }
+//        }
+//        return NullValue.INSTANCE;
+//    }
+//
+//    throw new RSLInterpretException("Attempted to call a non-function value. Called: %s".formatted(fn));
+//}
 
 
     static RuntimeValue evalObject(ObjectLiteralExpression obj, Environment env) {
@@ -153,15 +202,6 @@ static RuntimeValue evalCallExpr(CallExpression callExpr, Environment env) {
         if (objectRuntimeVal instanceof JavaClassValue classProxy) {
             RuntimeValue propertyRuntimeVal = getPropertyKey(expr, env);
             return classProxy.getField(propertyRuntimeVal);
-        }
-
-        // Handle accessing Java Enum values
-        if (objectRuntimeVal instanceof JavaEnumValue enumProxy) {
-            RuntimeValue propertyRuntimeVal = getPropertyKey(expr, env);
-            if (!(propertyRuntimeVal instanceof StringValue stringValue)) {
-                throw new RSLInterpretException("Enum property access must evaluate to a string: " + expr.property());
-            }
-            return enumProxy.getMember(stringValue);
         }
 
         throw new RSLInterpretException("Attempted to access a field on a non-object/java proxied variable: " + expr.object());
@@ -208,11 +248,9 @@ static RuntimeValue evalCallExpr(CallExpression callExpr, Environment env) {
 
     static RuntimeValue evalObjectAssignment(MemberExpression expr, Expression valueExpr, Environment env) {
         RuntimeValue objectRuntimeVal = eval(expr.object(), env);
-
-        if (!(objectRuntimeVal instanceof ObjectValue object)) {
-            throw new RSLInterpretException("Attempted to assign to a field of a non-object: " + expr.object());
+        if (!(objectRuntimeVal instanceof ObjectValue) && !(objectRuntimeVal instanceof JavaObjectValue) && !(objectRuntimeVal instanceof JavaClassValue)) {
+            throw new RSLInterpretException("Attempted to set a field of a non-object");
         }
-
         RuntimeValue propertyRuntimeVal;
         if (expr.computed()) {
             propertyRuntimeVal = eval(expr.property(), env);
@@ -232,8 +270,16 @@ static RuntimeValue evalCallExpr(CallExpression callExpr, Environment env) {
         // Evaluate the new value to assign
         RuntimeValue newValue = eval(valueExpr, env);
 
-        // Assign the new value to the object
-        object.properties().put(propertyName, newValue);
+        if ((objectRuntimeVal instanceof ObjectValue object)) {
+            object.properties().put(propertyName, newValue);
+        }
+        else if ((objectRuntimeVal instanceof JavaObjectValue jobj)) {
+            jobj.setField(propertyRuntimeVal, newValue);
+        }
+        else {
+            JavaClassValue jclass = (JavaClassValue) objectRuntimeVal;
+            jclass.setField(propertyRuntimeVal, newValue);
+        }
 
         return newValue;
     }

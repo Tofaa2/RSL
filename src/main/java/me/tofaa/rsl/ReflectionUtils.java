@@ -8,7 +8,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.IntFunction;
 
 /**
  * Not the greatest class ever made, but it'll suffice.
@@ -70,12 +69,16 @@ public final class ReflectionUtils {
                 .map(ReflectionUtils::inferType)
                 .toArray(Class<?>[]::new);
 
-        Method method = lookupMethod(clazz, name, paramTypes);
-        Object[] convertedParams = convertParameters(method.getParameterTypes(), params);
-
         try {
-            return method.invoke(isStatic ? null : instance, convertedParams);
-        } catch (InvocationTargetException | IllegalAccessException e) {
+            Method method = lookupMethod(clazz, name, paramTypes);
+            Object[] convertedParams = convertParameters(method.getParameterTypes(), params);
+            try {
+                return method.invoke(isStatic ? null : instance, convertedParams);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -156,57 +159,57 @@ public final class ReflectionUtils {
         }
     }
 
-    private static Object getField(boolean isStatic, Class<?> clazz, String name, Object instance) {
-        Field f = lookupField(clazz, name);
-        try {
-            return f.get(isStatic ? null : instance);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public static Method lookupMethod(Class<?> clazz, String name, Class<?>... params) {
         var lookup = methodLookup.computeIfAbsent(clazz, (v) -> new HashMap<>());
 
-        // Attempt exact match first
         try {
             Method exactMatch = clazz.getMethod(name, params);
             exactMatch.setAccessible(true);
             lookup.put(name, exactMatch);
             return exactMatch;
-        } catch (NoSuchMethodException ignored) {
-        }
+        } catch (NoSuchMethodException ignored) {}
 
-        // Fallback: Find closest match
+        Method bestMatch = null;
         for (Method method : clazz.getMethods()) {
             if (!method.getName().equals(name)) continue;
 
             Class<?>[] methodParams = method.getParameterTypes();
-            if (methodParams.length != params.length) continue; // Must have same number of params
-
-            boolean compatible = true;
-            for (int i = 0; i < params.length; i++) {
-                if (!isAssignable(params[i], methodParams[i])) {
-                    compatible = false;
-                    break;
-                }
-            }
-
-            if (compatible) {
+            if (isCompatible(methodParams, params)) {
                 method.setAccessible(true);
                 lookup.put(name, method);
                 return method;
             }
+
+            bestMatch = method;
         }
+
+        if (bestMatch != null) {
+            return bestMatch;
+        }
+
         throw new RuntimeException("No matching method '" + name + "' found in " + clazz.getName());
     }
+
+    private static boolean isCompatible(Class<?>[] expected, Class<?>[] given) {
+        if (expected.length != given.length) return false;
+        for (int i = 0; i < expected.length; i++) {
+            if (!isAssignable(given[i], expected[i]) && !isBoxedPrimitiveMatch(expected[i], given[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static boolean isAssignable(Class<?> from, Class<?> to) {
         if (from == NumberValue.class) {
             return isAssignable(Number.class, to);
         }
-        if (to.isAssignableFrom(from)) return true; // Direct match
 
-        // Primitive widening conversions
+        if (to.isAssignableFrom(from)) return true;
+
+        from = unbox(from);
+        to = unbox(to);
+
         return (from == int.class && (to == long.class || to == float.class || to == double.class))
                 || (from == long.class && (to == float.class || to == double.class))
                 || (from == float.class && to == double.class)
@@ -214,22 +217,6 @@ public final class ReflectionUtils {
                 || (from == byte.class && (to == short.class || to == int.class || to == long.class || to == float.class || to == double.class));
     }
 
-    /**
-     * Check if given argument types can be converted to match the expected parameter types.
-     */
-    private static boolean isCompatible(Class<?>[] expected, Class<?>[] given) {
-        if (expected.length != given.length) return false;
-        for (int i = 0; i < expected.length; i++) {
-            if (!expected[i].isAssignableFrom(given[i]) && !isBoxedPrimitiveMatch(expected[i], given[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Check if a primitive type and its wrapper are compatible.
-     */
     private static boolean isBoxedPrimitiveMatch(Class<?> expected, Class<?> given) {
         return (expected == double.class && given == Double.class)
                 || (expected == int.class && given == Integer.class)
@@ -241,6 +228,32 @@ public final class ReflectionUtils {
                 || (expected == short.class && given == Short.class);
     }
 
+    private static Class<?> unbox(Class<?> type) {
+        if (type == Integer.class) return int.class;
+        if (type == Long.class) return long.class;
+        if (type == Double.class) return double.class;
+        if (type == Float.class) return float.class;
+        if (type == Short.class) return short.class;
+        if (type == Byte.class) return byte.class;
+        if (type == Boolean.class) return boolean.class;
+        if (type == Character.class) return char.class;
+        return type;
+    }
+
+
+    private static Object getField(boolean isStatic, Class<?> clazz, String name, Object instance) {
+        var f = lookupFieldOrEnum(clazz, name);
+        if (f instanceof Field field) {
+            try {
+                return field.get(isStatic ? null : instance);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        else {
+            return f;
+        }
+    }
 
     public static Field lookupField(Class<?> clazz, String name) {
         var lookup = fieldLookup.computeIfAbsent(clazz, (v) -> new HashMap<>());
@@ -258,6 +271,15 @@ public final class ReflectionUtils {
             f = lookup.get(name);
         }
         return f;
+    }
+
+    public static Object lookupFieldOrEnum(Class<?> clazz, String name) {
+        try {
+            return lookupField(clazz, name);
+        }
+        catch (Exception e) {
+            return getEnumMember(clazz, name);
+        }
     }
 
     public static Enum<?> getEnumMember(Class<?> clazz, String name) {

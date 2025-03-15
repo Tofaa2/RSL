@@ -44,6 +44,18 @@ public final class GlobalNativeFunctions {
                 throw new RSLInterpretException(e);
             }
         }), true);
+//        env.declare("javaEnum",makeNativeFn((env1, args) -> {
+//            if (args.size() != 1 && !(args.getFirst() instanceof StringValue)) {
+//                throw new RSLInterpretException("Expected a string argument for class path in javaClass call");
+//            }
+//            String s = args.getFirst().asString().value();
+//            try {
+//                var clazz = Class.forName(s);
+//                return new JavaEnumValue(clazz);
+//            } catch (ClassNotFoundException e) {
+//                throw new RSLInterpretException(e);
+//            }
+//        }), true);
         env.declare("javaObject", makeNativeFn((env1, args) -> {
             if (args.isEmpty()) {
                 throw new RSLInterpretException("Expected a class or string + constructor arguments, got nothing.");
